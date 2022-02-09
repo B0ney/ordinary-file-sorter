@@ -7,31 +7,64 @@ from typing import Tuple
 class Folder():
     def __init__(self, name: str, path: str):
         self.name           = name
-        self.path           = path
+        self.__path         = path
+
+    @property
+    def path(self):
+        return os.path.expanduser(self.__path)
 
 class File():
     def __init__(self, name: str, extension: str, path: str):
         self.name           = name
         self.extension      = extension
-        self.path           = path
-        
+        self.__path         = path
+    
+    @property
+    def path(self):
+        return os.path.expanduser(self.__path)
+
 class FileRule():
     def __init__(self, key_words: list[str], extensions: list[str], destination: str, whitelist: list[str] = None):
         self.key_words      = key_words
         self.extensions     = extensions
-        self.destination    = destination
+        self.__destination  = destination
         self.whitelist      = whitelist
+
+    @property
+    def destination(self):
+        return os.path.expanduser(self.__destination)
 
 class  MoveToken():
     def __init__(self, source: str, destination: str):
-        self.source         = source
-        self.destination    = destination
+        self.__source         = source
+        self.__destination    = destination
+
+    @property
+    def source(self):
+        return os.path.expanduser(self.__source)
+
+    @source.setter  
+    def source(self, new_path):
+        self.__source = os.path.expanduser(new_path)
+    
+
+    @property
+    def destination(self):
+        return os.path.expanduser(self.__destination)
 
 class FolderTemplate():
     def __init__(self, root_folder: str, folders: list[str], unknown_folder: str = None):
-        self.root_folder    = root_folder
-        self.folders        = folders
-        self.place_for_unwanted = unknown_folder
+        self.__root_folder          = root_folder
+        self.folders                = folders
+        self.__place_for_unwanted   = unknown_folder
+
+    @property
+    def root_folder(self):
+        return os.path.expanduser(self.__root_folder)
+
+    @property
+    def place_for_unwanted(self):
+        return os.path.expanduser(self.__place_for_unwanted)
 
     def as_iter(self) -> list[str]: # too much rust influence
         # spits out a list of folders with their raw path
@@ -39,9 +72,13 @@ class FolderTemplate():
 
 class FileOperations():
     def __init__(self, source: list[str], rules: list[FileRule]):
-        self.sources    = source
+        self.__sources  = source
         self.rules      = rules
         
+    @property
+    def sources(self):
+        return list(map(lambda x: os.path.expanduser(x), self.__sources))
+
 class Config():
     def __init__(self, folder_templates: list[FolderTemplate] = None, file_operations: list[FileOperations] = None):
         self.folder_templates   = folder_templates
@@ -88,7 +125,7 @@ class Enforcer():
             for folder in scanned_folders:
                 unhandled_files_dir = folder_template.place_for_unwanted
 
-                if folder.name not in folder_template.folders and folder.path != os.path.expanduser(unhandled_files_dir):
+                if folder.name not in folder_template.folders and folder.path != unhandled_files_dir:
                     move_tokens.append(MoveToken(folder.path, unhandled_files_dir))
 
         self.move_tokens += move_tokens
@@ -161,18 +198,13 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
 
 def move(move_token_list: list[MoveToken]):
     for move_token in move_token_list:
-        (_, file_name) = os.path.split(move_token.source)
-        destination_path = os.path.expanduser(os.path.join(move_token.destination, file_name))
-        
-        if os.path.isfile(destination_path):
-            print(f"WARN: File {file_name} already exists!")
-        else:
-            try:
-                # shutil.move(move_token.source, move_token.destination)
-                print(f"moved: {move_token.destination} <-- {move_token.source}")
+        move_token.source = check_and_rename_dupes(move_token.source, move_token.destination)
+        try:
+            shutil.move(move_token.source, move_token.destination)
+            print(f"moved: {move_token.destination} <-- {move_token.source}")
 
-            except Exception as error:
-                print(f"Move failed: {error}")
+        except Exception as error:
+            print(f"Move failed: {error}")
 
 def filter_if_has_fallback(folder_templates: list[FolderTemplate]) -> list[FolderTemplate]:
     '''We only want FolderTemplates if they contain a folder to put files to.'''
@@ -206,17 +238,47 @@ def create_file_rule(destination: str, extensions: list[str] = None, key_words: 
         # TODO Raise exception
         print("You must provide at least a list of extensions or a list of key words!")
 
+def check_and_rename_dupes(source: str, destination: str) -> str:
+    ''' Check if file exists at desination, if so, rename file and return string of new filename (path included)
+
+        needs refactoring
+    '''
+    old_file = source
+    (path, file_name) = os.path.split(source)
+    potential_destination = os.path.join(destination, file_name)
+    
+    file_exists = os.path.isfile(potential_destination)
+
+    if not file_exists:
+        return source        
+
+    generation = 1
+    (file_name, extension) = os.path.splitext(os.path.basename(file_name))
+
+    while file_exists:
+        new_file_name = f"{file_name} ({generation}){extension}"
+        potential_destination = os.path.join(destination, new_file_name)
+        file_exists = os.path.isfile(potential_destination)
+        generation += 1
+
+    print(f"Renamed duplicate file: {potential_destination}")
+    new_source_file_name = os.path.join(path,new_file_name)
+    os.rename(old_file, new_source_file_name)
+    return potential_destination
+
 def main():
     sources = ["~/Downloads", "~/Pictures"]
     rules: list[FileRule] = [
         create_file_rule("~/Downloads/Compressed", extensions=["zip", "7z", "tar", "bz2", "rar","xz"]),
-        create_file_rule("~/Downloads/Compressed/Java", extensions=["jar"]),
-        create_file_rule("~/Download/Programs", extensions=["exe","elf","bin","deb", "rpm","msi","appimage"]),
-        create_file_rule("~/Download/Music", extensions=["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa"]),
-        create_file_rule("~/Download/Music/midi", extensions=["mid"]),
-        create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], key_words=["wallpaper", "unsplash"]),
-        create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
-        create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
+        # create_file_rule("~/Downloads/Compressed/Java", extensions=["jar"]),
+        # create_file_rule("~/Download/Programs", extensions=["exe","elf","bin","deb", "rpm","msi","appimage"]),
+        # create_file_rule("~/Download/Music", extensions=["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa"]),
+        # create_file_rule("~/Download/Music/midi", extensions=["mid"]),
+        # create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], key_words=["wallpaper", "unsplash"]),
+        # create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
+        # create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
+        # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
+
     ]  
     operations = FileOperations(
         source = sources,
@@ -234,14 +296,14 @@ def main():
     # config.export("./epic_config.json")
 
     enforcer = Enforcer(config)
-    enforcer.sort_folders()
-    # enforcer.sort_files()
+    # enforcer.sort_folders()
+    enforcer.sort_files()
 
     move(enforcer.move_tokens)
 
 
-    # for s in enforcer.move_tokens:
-    #     print(f"{s.destination} <-- \"{s.source}\"")
+    for s in enforcer.move_tokens:
+        print(f"{s.destination} <-- \"{s.source}\"")
 
 
 
