@@ -47,7 +47,6 @@ class  MoveToken():
     def source(self, new_path):
         self.__source = os.path.expanduser(new_path)
     
-
     @property
     def destination(self):
         return os.path.expanduser(self.__destination)
@@ -199,6 +198,8 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
 def move(move_token_list: list[MoveToken]):
     for move_token in move_token_list:
         move_token.source = check_and_rename_dupes(move_token.source, move_token.destination)
+        if not os.path.exists(move_token.destination):
+            os.makedirs(move_token.destination)
         try:
             shutil.move(move_token.source, move_token.destination)
             print(f"moved: {move_token.destination} <-- {move_token.source}")
@@ -269,14 +270,15 @@ def check_and_rename_dupes(source: str, destination: str) -> str:
 def main():
     sources = ["~/Downloads", "~/Pictures"]
     rules: list[FileRule] = [
-        create_file_rule("~/Downloads/Compressed", extensions=["zip", "7z", "tar", "bz2", "rar","xz"]),
-        # create_file_rule("~/Downloads/Compressed/Java", extensions=["jar"]),
-        # create_file_rule("~/Download/Programs", extensions=["exe","elf","bin","deb", "rpm","msi","appimage"]),
-        # create_file_rule("~/Download/Music", extensions=["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa"]),
-        # create_file_rule("~/Download/Music/midi", extensions=["mid"]),
-        # create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], key_words=["wallpaper", "unsplash"]),
-        # create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
-        # create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
+        create_file_rule("~/Downloads/Compressed", extensions=["zip", "7z", "tar", "bz2", "rar","xz","gz"]),
+        create_file_rule("~/Downloads/Compressed/Java", extensions=["jar"]),
+        create_file_rule("~/Downloads/Programs", extensions=["exe","elf","bin","deb", "rpm","msi","appimage"]),
+        create_file_rule("~/Downloads/Music", extensions=["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa","m4a"]),
+        create_file_rule("~/Downloads/Music/midi", extensions=["mid"]),
+        create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], key_words=["wallpaper", "unsplash"]),
+        create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
+        create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
+        create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"])
         # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
 
     ]  
@@ -296,14 +298,14 @@ def main():
     # config.export("./epic_config.json")
 
     enforcer = Enforcer(config)
-    # enforcer.sort_folders()
+    enforcer.sort_folders()
     enforcer.sort_files()
 
     move(enforcer.move_tokens)
 
 
-    for s in enforcer.move_tokens:
-        print(f"{s.destination} <-- \"{s.source}\"")
+    # for s in enforcer.move_tokens:
+    #     print(f"{s.destination} <-- \"{s.source}\"")
 
 
 
