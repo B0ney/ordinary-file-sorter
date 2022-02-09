@@ -1,0 +1,126 @@
+{
+    "folder_templates": [
+        {
+            "root_folder": "~/Downloads",
+            "folders": [
+                "Compressed",
+                "Documents",
+                "Pictures",
+                "Music",
+                "Video",
+                "Programs",
+                "Misc/Unsorted",
+                "Misc/No extensions",
+                "Misc/Folders"
+            ],
+            "place_for_unwanted": "~/Downloads/Folders"
+        },
+        {
+            "root_folder": "~/Pictures",
+            "folders": [
+                "Wallpaper",
+                "Screenshot",
+                "Art"
+            ],
+            "place_for_unwanted": "~/Pictures/Misc"
+        }
+    ],
+    "file_operations": [
+        {
+            "sources": [
+                "~/Downloads",
+                "~/Pictures"
+            ],
+            "rules": [
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "zip",
+                        "7z",
+                        "tar",
+                        "bz2",
+                        "rar",
+                        "xz"
+                    ],
+                    "destination": "~/Downloads/Compressed",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "jar"
+                    ],
+                    "destination": "~/Downloads/Compressed/Java",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "exe",
+                        "elf",
+                        "bin",
+                        "deb",
+                        "rpm",
+                        "msi",
+                        "appimage"
+                    ],
+                    "destination": "~/Download/Programs",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "mp3",
+                        "mp2",
+                        "wav",
+                        "ogg",
+                        "aac",
+                        "flac",
+                        "alac",
+                        "dsd",
+                        "mqa"
+                    ],
+                    "destination": "~/Download/Music",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "mid"
+                    ],
+                    "destination": "~/Download/Music/midi",
+                    "whitelist": null
+                },
+                {
+                    "key_words": [
+                        "wallpaper",
+                        "unsplash"
+                    ],
+                    "extensions": [
+                        "jpeg",
+                        "jpg",
+                        "png"
+                    ],
+                    "destination": "~/Pictures/wallpaper",
+                    "whitelist": null
+                },
+                {
+                    "key_words": [
+                        "screenshot"
+                    ],
+                    "extensions": null,
+                    "destination": "~/Pictures/Screenshot",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        ""
+                    ],
+                    "destination": "~/Downloads/Misc/No extensions",
+                    "whitelist": null
+                }
+            ]
+        }
+    ]
+}
