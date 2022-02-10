@@ -1,7 +1,7 @@
 import re
 import os.path
 import shutil
-import json 
+import json
 from typing import Tuple
 
 class Folder():
@@ -11,7 +11,11 @@ class Folder():
         self.path           = path
 
 class File():
-    ''' Stores the file name, file extension and its full path.'''
+    ''' Stores the file name, file extension and its full path.\n
+        "name" is purely the file name.\n
+        "extensions" can include a delimiter "." but is discoraged\n
+        "path" defines the full path of a file.
+    '''
     def __init__(self, name: str, extension: str, path: str):
         self.name           = name
         self.extension      = extension
@@ -42,6 +46,31 @@ class  MoveToken():
         self.source         = source
         self.destination    = destination
 
+    @property
+    def source(self):
+        return self.__source
+
+    @source.setter
+    def source(self, source_path: str):
+        self.__source = os.path.normpath(os.path.expanduser(source_path))
+
+    @property
+    def destination(self):
+        return self.__destination
+
+    @destination.setter
+    def destination(self, dest_path: str):
+        self.__destination = os.path.normpath(os.path.expanduser(dest_path))
+
+    def is_valid(self) -> bool:
+        ''' Make sure the source and destination parent folders are not equal'''
+        if os.path.isdir(self.source):
+            source_folder = self.source
+        else:
+            source_folder = os.path.dirname(self.source)
+            
+        return source_folder != self.destination
+
 class FolderTemplate():
     ''' Given a root folder and a list of folder names,
         we can generate folders with this template
@@ -55,7 +84,7 @@ class FolderTemplate():
         self.root_folder          = root_folder
         self.folders              = folders
         self.place_for_unwanted   = unknown_folder
-    
+
     @property
     def as_iter(self) -> list[str]: # too much rust influence
         '''Produces a list of folders with their raw path'''
@@ -86,8 +115,8 @@ class Config():
         json.dump(self, out_file, indent = 4, default=lambda o: o.__dict__)
         out_file.close()
 
-    def load(self, file_path: str):
-        pass
+    # def load(self, file_path: str):
+    #     pass
 
 class Enforcer():
     '''
@@ -108,7 +137,6 @@ class Enforcer():
         for folder_template in self.config.folder_templates:
             for folder in folder_template.as_iter:
                 folder = os.path.expanduser(folder)
-
                 if os.path.exists(folder):
                     print(f"INFO: Ignored folder (Already exists): '{folder}'.")
                     continue
@@ -124,7 +152,7 @@ class Enforcer():
         '''
         Move folders not specified by the folder template to a specified folder.\n
         Folder templates that do not have a dedicated place for these folders are ignored. 
-        '''      
+        '''
         template_with_fallback = filter_if_has_fallback(self.config.folder_templates)
         move_tokens: list[MoveToken] = []
 
@@ -153,7 +181,7 @@ class Enforcer():
 
             for rule in operation.rules:
                 filtered_files = self.filter_files(rule)
-                self.move_tokens += self.generate_file_template_list(rule, filtered_files)
+                self.move_tokens += self.generate_file_move_tokens(rule, filtered_files)
 
             self.files      = []
             self.folders    = []
@@ -185,7 +213,12 @@ class Enforcer():
 
         return filtered_files
 
-    def generate_file_template_list(self, rule: FileRule, filtered_files: list[File]) -> list[MoveToken]:
+    def generate_file_move_tokens(
+        self,
+        rule: FileRule,
+        filtered_files: list[File]
+        ) -> list[MoveToken]:
+        ''' Generates a list of MoveTokens given a file rule and a list of File objects'''
         template_list: list[MoveToken] = []
 
         for file in filtered_files:
@@ -194,10 +227,12 @@ class Enforcer():
         return template_list
 
 def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
-    '''
-    Scan a directory, return a tuple of scanned files and folders
-    '''
+    '''Scan a directory, return a tuple of scanned files and folders'''
+    # if not os.path.exists(folder):
+    #     raise Exception(f"Path '{folder}' does not exist!")
+
     files = os.scandir(os.path.expanduser(folder))
+
     scanned_files = []
     scanned_folders = []
 
@@ -219,16 +254,29 @@ def move(move_token_list: list[MoveToken]):
     Will automatically rename duplicates.\n
     Will automatically create a folder if it doesn't exist.
     '''
-    for move_token in move_token_list:
-        move_token.source = check_and_rename_dupes(move_token.source, move_token.destination)
-        if not os.path.exists(move_token.destination):
-            os.makedirs(move_token.destination)
-        try:
-            shutil.move(move_token.source, move_token.destination)
-            print(f"moved: {move_token.destination} <-- {move_token.source}")
+    # TODO
+    move_token_list = filter_looping_files(move_token_list)
 
-        except Exception as error:
-            print(f"Move failed: {error}")
+    for a in move_token_list:
+        print(f"src: {a.source}, dest: {a.destination}")
+
+    for move_token in move_token_list:
+        if not os.path.isfile(move_token.source) and not os.path.isdir(move_token.source):
+            print(f"Info: Ignoring missing file {move_token.source}")
+            continue
+
+        move_token.source = check_and_rename_dupes(move_token.source, move_token.destination)
+
+        
+
+        # if not os.path.exists(move_token.destination):
+        #     os.makedirs(move_token.destination)
+        # try:
+        #     # shutil.move(move_token.source, os.path.expanduser(move_token.destination))
+        #     print(f"moved: {move_token.destination} <-- {move_token.source}")
+
+        # except Exception as error:
+        #     print(f"Move failed: {error}")
 
 def filter_if_has_fallback(folder_templates: list[FolderTemplate]) -> list[FolderTemplate]:
     '''We only want FolderTemplates if they contain a folder to put files to.'''
@@ -246,6 +294,23 @@ def filter_by_key_word(list_of_files: list[File], words: list[str]) -> list[File
     ''' Return an iterator of Files if their filenames satisfy a particluar word'''
     return filter(lambda file: re.search(as_regex(words), file.name.lower()), list_of_files)
 
+def filter_looping_files(move_tokens: list[MoveToken]):
+    ''' It is possible for a move token to have the same destination
+        as the file/folder's root, we need to get rid of those
+    '''
+    fresh_tokens: list[MoveToken] = []
+
+    for move_token in move_tokens:
+        a = os.path.dirname(move_token.source)
+        b = move_token.destination
+
+        
+        if a != b:
+            # print(f"{a}, {b}")
+            fresh_tokens.append(move_token)
+
+    return fresh_tokens
+
 def as_regex(list_of_key_words: list[str]) -> str:
     # TODO sanitise words in list to get rid of special characters
     return f"{'|'.join(list_of_key_words)}"
@@ -257,20 +322,19 @@ def create_file_rule(
     whitelist: list[str] = None
     ) -> FileRule:
     ''' Creates a FileRule object given these parameters'''
-    if extensions is not None or key_words is not None:
-        return FileRule(
-            key_words,
-            extensions,
-            destination,
-            whitelist,
-        )
-    else:
-        # TODO Raise exception
-        print("You must provide at least a list of extensions or a list of key words!")
+    assert not (extensions is None and key_words is None)
+    # raise "You must provide at least a list of extensions or a list of key words!"
+
+    return FileRule(
+        key_words,
+        extensions,
+        destination,
+        whitelist,
+    )
 
 def check_and_rename_dupes(source: str, destination: str) -> str:
     '''
-        Check if file exists at desination, if so, rename file and return string of new filename (path included)
+        Renames a duplicate file
         needs refactoring
     '''
     old_file = source
@@ -296,7 +360,8 @@ def check_and_rename_dupes(source: str, destination: str) -> str:
     return potential_destination
 
 def main():
-    sources = ["~/Downloads", "~/Pictures"]
+    ''' main'''
+    sources = ["~/Downloads", "~/Pictures","~/Downloads/Unsorted"]
     rules: list[FileRule] = [
         create_file_rule("~/Downloads/Compressed", extensions=["zip", "7z", "tar", "bz2", "rar","xz","gz"]),
         create_file_rule("~/Downloads/Compressed/Java", extensions=["jar"]),
@@ -304,9 +369,11 @@ def main():
         create_file_rule("~/Downloads/Music", extensions=["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa","m4a"]),
         create_file_rule("~/Downloads/Music/midi", extensions=["mid"]),
         create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], key_words=["wallpaper", "unsplash"]),
+        create_file_rule("~/Pictures/", extensions=["jpg"]),
         create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
         create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
-        create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"])
+        create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"]),
+        create_file_rule("~/Downloads/Unsorted/", key_words=[""])
         # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
 
     ]  
@@ -316,20 +383,21 @@ def main():
     )
     folder_gen = [
         FolderTemplate(
-            "~/tmp/Downloads",
+            "~/Downloads",
             [
                 "Compressed",
-                "Documents", 
-                "Pictures", 
-                "Music", 
+                "Documents",
+                "Pictures",
+                "Music",
                 "Video",
                 "Programs",
-                "Misc", 
-                "Misc/Unsorted", 
+                "Unsorted",
+                "Misc",
+                "Misc/Unsorted",
                 "Misc/No extensions",
-                 "Misc/Folders"
-            ], 
-            "~/tmp/Downloads/Folders"),
+                "Misc/Folders"
+            ],
+            "~/Downloads/Folders"),
         # FolderTemplate("~/tmp/Pictures", ["Wallpaper", "Screenshot", "Art"], "~/Pictures/Misc"),
     ]
     config = Config(
@@ -340,17 +408,19 @@ def main():
     config.export("./epic_config.json")
 
     enforcer = Enforcer(config)
-    enforcer.generate_folders()
+    # enforcer.generate_folders()
     enforcer.sort_folders()
+    enforcer.sort_files()
     # move(enforcer.move_tokens)
-    # enforcer.sort_files()
+    move(enforcer.move_tokens)
 
-    # move(enforcer.move_tokens)
     # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
-    for s in enforcer.move_tokens:
-        print(f"{s.destination} <-- \"{s.source}\"")
+    # for s in enforcer.move_tokens:
+    #     print(f"{s.destination} <-- \"{s.source}\"")
 
 
 
 if __name__ == "__main__":
+    # a = "~/Downloads"
+    # print(os.path.abspath(a))
     main()
