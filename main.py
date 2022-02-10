@@ -55,7 +55,8 @@ class FolderTemplate():
         self.root_folder          = root_folder
         self.folders              = folders
         self.place_for_unwanted   = unknown_folder
-
+    
+    @property
     def as_iter(self) -> list[str]: # too much rust influence
         '''Produces a list of folders with their raw path'''
         return map(lambda folder: os.path.join(self.root_folder, folder), self.folders)
@@ -105,7 +106,7 @@ class Enforcer():
         '''
         # Perfect, no need to refactor
         for folder_template in self.config.folder_templates:
-            for folder in folder_template.as_iter():
+            for folder in folder_template.as_iter:
                 folder = os.path.expanduser(folder)
 
                 if not os.path.exists(folder):
@@ -128,7 +129,7 @@ class Enforcer():
 
         for folder_template in template_with_fallback:
             (_, scanned_folders) = scandir(folder_template.root_folder)
-            
+
             for folder in scanned_folders:
                 unhandled_files_dir = os.path.expanduser(folder_template.place_for_unwanted)
                 folder_path = os.path.expanduser(folder.path)
@@ -160,6 +161,7 @@ class Enforcer():
         '''A user can choose to scan multiple folders before enforcing a rule(s)'''
         if path in self.scanned_sources:
             print(f"WARN: Scanning operation ignored: Source '{path}' already scanned")
+
         else:
             (scanned_files, _) = scandir(path)
             self.files += scanned_files
@@ -334,18 +336,18 @@ def main():
         file_operations = [operations]
     )
     # generate_folders(folder_gen)
-    # config.export("./epic_config.json")
+    config.export("./epic_config.json")
 
     enforcer = Enforcer(config)
     enforcer.generate_folders()
     enforcer.sort_folders()
-    move(enforcer.move_tokens)
+    # move(enforcer.move_tokens)
     # enforcer.sort_files()
 
     # move(enforcer.move_tokens)
     # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
-    # for s in enforcer.move_tokens:
-    #     print(f"{s.destination} <-- \"{s.source}\"")
+    for s in enforcer.move_tokens:
+        print(f"{s.destination} <-- \"{s.source}\"")
 
 
 
