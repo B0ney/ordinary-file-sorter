@@ -109,21 +109,22 @@ class Enforcer():
             for folder in folder_template.as_iter:
                 folder = os.path.expanduser(folder)
 
-                if not os.path.exists(folder):
-                    try:
-                        os.makedirs(folder)
-                        print(f"INFO: Created folder: '{folder}'")
-
-                    except Exception as e:
-                        print(f"WARN: Could not create folder: '{folder}', {e}")
-                else:
+                if os.path.exists(folder):
                     print(f"INFO: Ignored folder (Already exists): '{folder}'.")
+                    continue
+
+                try:
+                    os.makedirs(folder)
+                    print(f"INFO: Created folder: '{folder}'")
+
+                except Exception as err:
+                    print(f"WARN: Could not create folder: '{folder}', {err}")
 
     def sort_folders(self):
         '''
         Move folders not specified by the folder template to a specified folder.\n
         Folder templates that do not have a dedicated place for these folders are ignored. 
-        '''        
+        '''      
         template_with_fallback = filter_if_has_fallback(self.config.folder_templates)
         move_tokens: list[MoveToken] = []
 
