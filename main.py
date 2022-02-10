@@ -25,8 +25,8 @@ class FileRule():
     ''' Used as a filter for files with the following properties:\n
         * key words -> E.g. "screenshot" or "wallpaper".\n
         * extensions -> E.g. "zip", "7z" or "".\n
-        * whitelist -> Filenames that exactly match words in a whitelist will be ignored. E.g. "".\n
-        * destination -> Where files should be moved to if satisfies criteria above.
+        * whitelist -> Filenames that exactly match words in a whitelist will be ignored. E.g. "icon".\n
+        * destination -> Where files should be moved if it satisfies the criteria above.
     '''
     def __init__(
         self,
@@ -63,17 +63,24 @@ class  MoveToken():
         self.__destination = os.path.normpath(os.path.expanduser(dest_path))
 
     def is_valid(self) -> bool:
-        ''' Make sure the source and destination parent folders are not equal'''
+        ''' A move token is valid if:\n
+            * The source exists.
+            * The source and destination parent folders are NOT equal.\n
+                e.g "~/Downloads/cheese.txt" -> "~/Downloads/" is not valid.\n
+        '''
+        if not os.path.exists(self.source):
+            return False
+
         if os.path.isdir(self.source):
             source_folder = self.source
-        else:
+        else: # Strip the filename to unveil the source folder 
             source_folder = os.path.dirname(self.source)
-            
+
         return source_folder != self.destination
 
 class FolderTemplate():
     ''' Given a root folder and a list of folder names,
-        we can generate folders with this template
+        we can generate folders with this template.
     '''
     def __init__(
         self,
@@ -133,7 +140,6 @@ class Enforcer():
         '''
         Generates folders when provided a list of folder templates. 
         '''
-        # Perfect, no need to refactor
         for folder_template in self.config.folder_templates:
             for folder in folder_template.as_iter:
                 folder = os.path.expanduser(folder)
@@ -142,7 +148,7 @@ class Enforcer():
                     continue
 
                 try:
-                    os.makedirs(folder)
+                    # os.makedirs(folder)
                     print(f"INFO: Created folder: '{folder}'")
 
                 except Exception as err:
@@ -153,17 +159,19 @@ class Enforcer():
         Move folders not specified by the folder template to a specified folder.\n
         Folder templates that do not have a dedicated place for these folders are ignored. 
         '''
-        template_with_fallback = filter_if_has_fallback(self.config.folder_templates)
         move_tokens: list[MoveToken] = []
 
-        for folder_template in template_with_fallback:
+        for folder_template in self.config.folder_templates:
+            if folder_template.place_for_unwanted is None:
+                continue
+
             (_, scanned_folders) = scandir(folder_template.root_folder)
 
             for folder in scanned_folders:
-                unhandled_files_dir = os.path.expanduser(folder_template.place_for_unwanted)
-                folder_path = os.path.expanduser(folder.path)
+                unhandled_files_dir = folder_template.place_for_unwanted
+                folder_path = folder.path
 
-                if folder.name not in folder_template.folders and folder_path != unhandled_files_dir:
+                if folder.name not in folder_template.folders:
                     move_tokens.append(MoveToken(folder_path, unhandled_files_dir))
 
         self.move_tokens += move_tokens
@@ -228,8 +236,8 @@ class Enforcer():
 
 def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
     '''Scan a directory, return a tuple of scanned files and folders'''
-    # if not os.path.exists(folder):
-    #     raise Exception(f"Path '{folder}' does not exist!")
+    if not os.path.exists(folder):
+        raise Exception(f"Path '{folder}' does not exist!")
 
     files = os.scandir(os.path.expanduser(folder))
 
@@ -255,32 +263,30 @@ def move(move_token_list: list[MoveToken]):
     Will automatically create a folder if it doesn't exist.
     '''
     # TODO
-    move_token_list = filter_looping_files(move_token_list)
+    # move_token_list = filter_looping_files(move_token_list)
 
-    for a in move_token_list:
-        print(f"src: {a.source}, dest: {a.destination}")
+    # for a in move_token_list:
+    #     print(f"src: {a.source}, dest: {a.destination}")
 
     for move_token in move_token_list:
-        if not os.path.isfile(move_token.source) and not os.path.isdir(move_token.source):
-            print(f"Info: Ignoring missing file {move_token.source}")
+        if not move_token.is_valid():
+            print("Skipping invalid token...")
             continue
 
         move_token.source = check_and_rename_dupes(move_token.source, move_token.destination)
 
-        
+        if not os.path.exists(move_token.destination):
+            os.makedirs(move_token.destination)
+        try:
+            shutil.move(move_token.source, os.path.expanduser(move_token.destination))
+            print(f"moved: {move_token.destination} <-- {move_token.source}")
 
-        # if not os.path.exists(move_token.destination):
-        #     os.makedirs(move_token.destination)
-        # try:
-        #     # shutil.move(move_token.source, os.path.expanduser(move_token.destination))
-        #     print(f"moved: {move_token.destination} <-- {move_token.source}")
+        except Exception as error:
+            print(f"Move failed: {error}")
 
-        # except Exception as error:
-        #     print(f"Move failed: {error}")
-
-def filter_if_has_fallback(folder_templates: list[FolderTemplate]) -> list[FolderTemplate]:
-    '''We only want FolderTemplates if they contain a folder to put files to.'''
-    return filter(lambda folder_template: folder_template.place_for_unwanted is not None, folder_templates)
+# def filter_if_has_fallback(folder_templates: list[FolderTemplate]) -> list[FolderTemplate]:
+#     '''We only want FolderTemplates if they contain a folder to put files to.'''
+#     return filter(lambda folder_template: folder_template.place_for_unwanted is not None, folder_templates)
 
 def filter_by_whitelist(list_of_files: list[File], whitelist: list[str]) -> list[File]:
     ''' Return an iterator of non whitelisted Files '''
@@ -294,22 +300,20 @@ def filter_by_key_word(list_of_files: list[File], words: list[str]) -> list[File
     ''' Return an iterator of Files if their filenames satisfy a particluar word'''
     return filter(lambda file: re.search(as_regex(words), file.name.lower()), list_of_files)
 
-def filter_looping_files(move_tokens: list[MoveToken]):
-    ''' It is possible for a move token to have the same destination
-        as the file/folder's root, we need to get rid of those
-    '''
-    fresh_tokens: list[MoveToken] = []
+# def filter_looping_files(move_tokens: list[MoveToken]):
+#     ''' It is possible for a move token to have the same destination
+#         as the file/folder's root, we need to get rid of those
+#     '''
+#     fresh_tokens: list[MoveToken] = []
 
-    for move_token in move_tokens:
-        a = os.path.dirname(move_token.source)
-        b = move_token.destination
+#     for move_token in move_tokens:
+#         a = os.path.dirname(move_token.source)
+#         b = move_token.destination
+#         if a != b:
+#             # print(f"{a}, {b}")
+#             fresh_tokens.append(move_token)
 
-        
-        if a != b:
-            # print(f"{a}, {b}")
-            fresh_tokens.append(move_token)
-
-    return fresh_tokens
+#     return fresh_tokens
 
 def as_regex(list_of_key_words: list[str]) -> str:
     # TODO sanitise words in list to get rid of special characters

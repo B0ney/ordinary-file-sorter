@@ -1,6 +1,6 @@
 import unittest
 import main
-
+# python -m unittest unit_test.py
 class Testclass(unittest.TestCase):
     '''testing'''
     def test_data_types(self):
@@ -9,6 +9,7 @@ class Testclass(unittest.TestCase):
         These classes contain no methods for serialisation purposes.
         So do not expect these classes to contain methods.      
         '''
+        #--------------------------------------------#
 
         data_1 = ("test_file", "exe",  "~/Downloads")
         data_2 = ("test_file", ".jar", "~/Downloads")
@@ -38,7 +39,6 @@ class Testclass(unittest.TestCase):
         self.assertEqual(folder_2.name, data_4[0])
         self.assertEqual(folder_2.path, data_4[1])
 
-        #--------------------------------------------#
     def test_move_token(self):
         '''
         The move token class stores 2 strings:
@@ -50,26 +50,26 @@ class Testclass(unittest.TestCase):
         Future problem:
             We don't want the source and destination folder to be the same
         '''
+        #--------------------------------------------#
+        
         source_1, destination_1 = ("./test_folder", "./test_folder")
 
         move_token_1 = main.MoveToken(source_1, destination_1)
-
         self.assertFalse(move_token_1.is_valid())
+
+        #--------------------------------------------#
+        # Non-existent sources should return false
+        source_2, destination_2 = ("./test_folder_two/fjajfldajfldajflda.txt", "./test_folder")
+
+        move_token_2 = main.MoveToken(source_2, destination_2)
+        self.assertFalse(move_token_2.is_valid())
+
+        #--------------------------------------------#
+        # Existing files, should return true
+        source_3, destination_3 = ("./test_folder/test_file.txt", "./test_folder_3")
+
+        move_token_3 = main.MoveToken(source_3, destination_3)
+        self.assertTrue(move_token_3.is_valid())
         # pass
 
-# import os 
-# a = "/Downloads/"
-# a_1 = "~/Downloads/too.txt"
-# b = os.path.normpath(os.path.expanduser(a))
-# # if os.path.isfile(a_1):
-# (a_1) = os.path.split(a_1)
-# print(a_1)
-# c = os.path.normpath(os.path.expanduser(a_1))
 
-# print(b != c)
-
-# source_1, destination_1 = ("./test_folder/test_file.txt", "./test_folder")
-
-# move_token_1 = main.MoveToken(source_1, destination_1)
-
-# print(move_token_1.is_valid())
