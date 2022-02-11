@@ -81,8 +81,8 @@ class  MoveToken():
         else: # Strip the filename to unveil the source folder
             source_folder = os.path.dirname(self.source)
 
-        check_1: bool = source_folder != self.destination
-        check_2: bool = source_folder != os.path.dirname(os.path.realpath(__file__))
+        check_1: bool = source_folder   != self.destination
+        check_2: bool = self.source     != os.path.realpath(__file__)
 
         return check_1 and check_2
 
@@ -145,18 +145,17 @@ class Enforcer():
         self.scanned_sources:   list[File]      = []
 
     def generate_folders(self):
-        '''
-        Generates folders when provided a list of folder templates. 
-        '''
+        '''Generates folders when provided a list of folder templates.'''
         for folder_template in self.config.folder_templates:
             for folder in folder_template.as_iter:
                 folder = os.path.expanduser(folder)
+
                 if os.path.exists(folder):
                     print(f"INFO: Ignored folder (Already exists): '{folder}'.")
                     continue
 
                 try:
-                    # os.makedirs(folder)
+                    os.makedirs(folder)
                     print(f"INFO: Created folder: '{folder}'")
 
                 except Exception as err:
@@ -170,6 +169,7 @@ class Enforcer():
         move_tokens: list[MoveToken] = []
 
         for folder_template in self.config.folder_templates:
+
             if folder_template.place_for_unwanted is None:
                 continue
 
@@ -199,8 +199,9 @@ class Enforcer():
                 filtered_files = self.filter_files(rule)
                 self.move_tokens += self.generate_file_move_tokens(rule, filtered_files)
 
-            self.files      = []
-            self.folders    = []
+            self.files              = []
+            self.folders            = []
+            self.scanned_sources    = []
 
     def scan_files(self, path: str):
         '''A user can choose to scan multiple folders before enforcing a rule(s)'''
@@ -244,7 +245,7 @@ class Enforcer():
 
 def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
     '''Scan a directory, return a tuple of scanned files and folders'''
-    if not os.path.exists(folder):
+    if not os.path.exists(os.path.expanduser(folder)):
         raise Exception(f"Path '{folder}' does not exist!")
 
     files = os.scandir(os.path.expanduser(folder))
@@ -270,9 +271,6 @@ def move(move_token_list: list[MoveToken]):
     Will automatically rename duplicates.\n
     Will automatically create a folder if it doesn't exist.
     '''
-    # for a in move_token_list:
-    #     print(f"src: {a.source}, dest: {a.destination}")
-
     for move_token in move_token_list:
         if not move_token.is_valid():
             print("Skipping invalid token...")
@@ -283,7 +281,7 @@ def move(move_token_list: list[MoveToken]):
         if not os.path.exists(move_token.destination):
             os.makedirs(move_token.destination)
         try:
-            # shutil.move(move_token.source, os.path.expanduser(move_token.destination))
+            shutil.move(move_token.source, move_token.destination)
             print(f"moved: {move_token.destination} <-- {move_token.source}")
 
         except Exception as error:
@@ -330,7 +328,7 @@ def check_and_rename_dupes(source: str, destination: str) -> str:
     old_file = source
     (path, file_name) = os.path.split(source)
     potential_destination = os.path.join(destination, file_name)
-    file_exists = os.path.isfile(potential_destination)
+    file_exists = os.path.exists(potential_destination)
 
     if not file_exists:
         return source
@@ -341,13 +339,14 @@ def check_and_rename_dupes(source: str, destination: str) -> str:
     while file_exists:
         new_file_name = f"{file_name} ({generation}){extension}"
         potential_destination = os.path.join(destination, new_file_name)
-        file_exists = os.path.isfile(potential_destination)
+        file_exists = os.path.exists(potential_destination)
         generation += 1
 
-    print(f"Renamed duplicate file: {potential_destination}")
+
     new_source_file_name = os.path.join(path,new_file_name)
     os.rename(old_file, new_source_file_name)
-    return potential_destination
+    print(f"Renamed duplicate file: {source} -> {new_source_file_name}")
+    return new_source_file_name
 
 def main():
     ''' main'''
@@ -363,13 +362,16 @@ def main():
         create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
         create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
         create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"]),
-        create_file_rule("~/Downloads/Unsorted/", key_words=[""])
         # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
 
     ]  
     operations = Operation(
         source = sources,
         rules = rules
+    )
+    unsorted_stuff = Operation(
+        source = ["~/Downloads"],
+        rules = [create_file_rule("~/Downloads/Unsorted/", key_words="")]
     )
     folder_gen = [
         FolderTemplate(
@@ -392,17 +394,17 @@ def main():
     ]
     config = Config(
         folder_templates = folder_gen,
-        operations = [operations]
+        operations = [operations, unsorted_stuff]
     )
     # generate_folders(folder_gen)
-    config.export("./epic_config.json")
+    # config.export("./epic_config.json")
 
-    # enforcer = Enforcer(config)
+    enforcer = Enforcer(config)
     # # enforcer.generate_folders()
-    # enforcer.sort_folders()
-    # enforcer.sort_files()
+    enforcer.sort_folders()
+    enforcer.sort_files()
     # move(enforcer.move_tokens)
-    # move(enforcer.move_tokens)
+    move(enforcer.move_tokens)
 
     # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
     # for s in enforcer.move_tokens:
