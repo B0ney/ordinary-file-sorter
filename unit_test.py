@@ -78,7 +78,7 @@ class Testclass(unittest.TestCase):
         # Make sure the FOLDER containing this project is untotched
         this_code_path      = os.path.realpath(__file__)
         this_code_folder    = os.path.dirname(this_code_path)
-        test_destination    = "~/Downloads"
+        test_destination    = this_code_folder
 
         move_token_1 = main.MoveToken(this_code_path, test_destination)
         self.assertFalse(move_token_1.is_valid())
