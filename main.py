@@ -32,11 +32,11 @@ class FileRule():
     '''
     def __init__(
         self,
-        key_words: list[str],
-        extensions: list[str],
-        destination: str,
-        whitelist: list[str] = None
-        ):
+        key_words:      list[str],
+        extensions:     list[str],
+        destination:    str,
+        whitelist:      list[str] = None
+    ) -> None:
         self.key_words      = key_words
         self.extensions     = extensions
         self.destination    = destination
@@ -45,7 +45,11 @@ class FileRule():
 
 class  MoveToken():
     ''' Stores the Source of a file/folder and the destination'''
-    def __init__(self, source: str, destination: str):
+    def __init__(
+        self,
+        source:         str,
+        destination:    str
+    ) -> None:
         self.source         = source
         self.destination    = destination
 
@@ -77,11 +81,11 @@ class  MoveToken():
 
         if os.path.isdir(self.source):
             source_folder = self.source
-            program_path = os.path.dirname(os.path.realpath(__file__))
+            program_path =  os.path.dirname(os.path.realpath(__file__))
 
         else: # Strip the filename to unveil the source folder
             source_folder = os.path.dirname(self.source)
-            program_path = os.path.realpath(__file__)
+            program_path =  os.path.realpath(__file__)
 
         check_1: bool = source_folder   != self.destination
         check_2: bool = self.source     != program_path
@@ -94,10 +98,10 @@ class FolderTemplate():
     '''
     def __init__(
         self,
-        root_folder: str,
-        folders: list[str],
+        root_folder:    str,
+        folders:        list[str],
         unknown_folder: str = None
-        ):
+    ) -> None:
         self.root_folder          = root_folder
         self.folders              = folders
         self.place_for_unwanted   = unknown_folder
@@ -109,7 +113,11 @@ class FolderTemplate():
 
 class Operation():
     ''' Stores a list of sources and a list of rules'''
-    def __init__(self, source: list[str], rules: list[FileRule]):
+    def __init__(
+        self,
+        source: list[str],
+        rules:  list[FileRule]
+    ) -> None:
         self.scan_sources   = source
         self.rules          = rules
 
@@ -119,8 +127,8 @@ class Config():
     '''
     def __init__(
         self,
-        folder_templates: list[FolderTemplate] = None,
-        operations: list[Operation] = None
+        folder_templates:   list[FolderTemplate] = None,
+        operations:         list[Operation] = None
         ):
         self.folder_templates   = folder_templates
         self.file_operations    = operations
@@ -128,9 +136,8 @@ class Config():
     def export(self, file_path: str):
         '''Serializes Config to JSON'''
         # TODO: add error handling
-        out_file = open(file_path, "w")
-        json.dump(self, out_file, indent = 4, default=lambda o: o.__dict__)
-        out_file.close()
+        with open(file_path, "w") as out_file:
+            json.dump(self, out_file, indent = 4, default=lambda o: o.__dict__)
 
     # def load(self, file_path: str):
     #     pass
@@ -187,9 +194,8 @@ class Enforcer():
         self.move_tokens += move_tokens
 
     def sort_files(self):
-        '''
-        Move files based on their extensions, key words and whitelist status
-        to a specified location.
+        ''' Move files based on their extensions,
+            key words and whitelist status to a specified location.
         '''
         operations = self.config.file_operations
 
@@ -262,7 +268,6 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
         path = os.path.abspath(file)
 
         if file.is_file():
-            
             scanned_files.append(File(name, extension.strip("."), path))
 
         if file.is_dir():
@@ -271,10 +276,9 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
     return (scanned_files, scanned_folders)
 
 def move(move_token_list: list[MoveToken]):
-    '''
-    Move files and folders according to the list of MoveTokens.\n
-    Will automatically rename duplicates.\n
-    Will automatically create a folder if it doesn't exist.
+    ''' Move files and folders according to the list of MoveTokens.\n
+        Will automatically rename duplicates.\n
+        Will automatically create a folder if it doesn't exist.
     '''
     for move_token in move_token_list:
         if not move_token.is_valid():
@@ -326,9 +330,8 @@ def create_file_rule(
     )
 
 def check_and_rename_dupes(source: str, destination: str) -> str:
-    '''
-        Renames a duplicate file
-        needs refactoring
+    ''' Renames a duplicate file/folder.
+        Needs refactoring
     '''
     old_file = source
     (path, file_name) = os.path.split(source)
@@ -346,7 +349,6 @@ def check_and_rename_dupes(source: str, destination: str) -> str:
         potential_destination = os.path.join(destination, new_file_name)
         path_exists = os.path.exists(potential_destination)
         generation += 1
-
 
     new_source_path_name = os.path.join(path,new_file_name)
     os.rename(old_file, new_source_path_name)
@@ -395,29 +397,24 @@ def main():
                 "Misc/Folders"
             ],
             "~/Downloads/Folders"),
-        # FolderTemplate("~/tmp/Pictures", ["Wallpaper", "Screenshot", "Art"], "~/Pictures/Misc"),
     ]
     config = Config(
         folder_templates = folder_gen,
         operations = [operations, unsorted_stuff]
     )
-    # generate_folders(folder_gen)
-    # config.export("./epic_config.json")
 
-    enforcer = Enforcer(config)
+    config.export("./epic_config.json")
+
+    # enforcer = Enforcer(config)
     # # enforcer.generate_folders()
-    enforcer.sort_folders()
-    enforcer.sort_files()
+    # enforcer.sort_folders()
+    # enforcer.sort_files()
     # move(enforcer.move_tokens)
-    move(enforcer.move_tokens)
 
     # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
-    # for s in enforcer.move_tokens:
-    #     print(f"{s.destination} <-- \"{s.source}\"")
+
 
 
 
 if __name__ == "__main__":
-    # a = "~/Downloads"
-    # print(os.path.abspath(a))
     main()

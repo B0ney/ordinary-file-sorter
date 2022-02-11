@@ -20,7 +20,7 @@
     ],
     "file_operations": [
         {
-            "sources": [
+            "scan_sources": [
                 "~/Downloads",
                 "~/Pictures",
                 "~/Downloads/Unsorted"
@@ -132,11 +132,16 @@
                     ],
                     "destination": "~/Downloads/Video",
                     "whitelist": null
-                },
+                }
+            ]
+        },
+        {
+            "scan_sources": [
+                "~/Downloads"
+            ],
+            "rules": [
                 {
-                    "key_words": [
-                        ""
-                    ],
+                    "key_words": "",
                     "extensions": null,
                     "destination": "~/Downloads/Unsorted/",
                     "whitelist": null
