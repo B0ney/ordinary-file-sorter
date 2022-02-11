@@ -1,0 +1,147 @@
+{
+    "folder_templates": [
+        {
+            "root_folder": "~/Downloads",
+            "folders": [
+                "Compressed",
+                "Documents",
+                "Pictures",
+                "Music",
+                "Video",
+                "Programs",
+                "Unsorted",
+                "Misc",
+                "Misc/Unsorted",
+                "Misc/No extensions",
+                "Misc/Folders"
+            ],
+            "place_for_unwanted": "~/Downloads/Folders"
+        }
+    ],
+    "file_operations": [
+        {
+            "sources": [
+                "~/Downloads",
+                "~/Pictures",
+                "~/Downloads/Unsorted"
+            ],
+            "rules": [
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "zip",
+                        "7z",
+                        "tar",
+                        "bz2",
+                        "rar",
+                        "xz",
+                        "gz"
+                    ],
+                    "destination": "~/Downloads/Compressed",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "jar"
+                    ],
+                    "destination": "~/Downloads/Compressed/Java",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "exe",
+                        "elf",
+                        "bin",
+                        "deb",
+                        "rpm",
+                        "msi",
+                        "appimage"
+                    ],
+                    "destination": "~/Downloads/Programs",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "mp3",
+                        "mp2",
+                        "wav",
+                        "ogg",
+                        "aac",
+                        "flac",
+                        "alac",
+                        "dsd",
+                        "mqa",
+                        "m4a"
+                    ],
+                    "destination": "~/Downloads/Music",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "mid"
+                    ],
+                    "destination": "~/Downloads/Music/midi",
+                    "whitelist": null
+                },
+                {
+                    "key_words": [
+                        "wallpaper",
+                        "unsplash"
+                    ],
+                    "extensions": [
+                        "jpeg",
+                        "jpg",
+                        "png"
+                    ],
+                    "destination": "~/Pictures/wallpaper",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "jpg"
+                    ],
+                    "destination": "~/Pictures/",
+                    "whitelist": null
+                },
+                {
+                    "key_words": [
+                        "screenshot"
+                    ],
+                    "extensions": null,
+                    "destination": "~/Pictures/Screenshot",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        ""
+                    ],
+                    "destination": "~/Downloads/Misc/No extensions",
+                    "whitelist": null
+                },
+                {
+                    "key_words": null,
+                    "extensions": [
+                        "mp4",
+                        "mkv"
+                    ],
+                    "destination": "~/Downloads/Video",
+                    "whitelist": null
+                },
+                {
+                    "key_words": [
+                        ""
+                    ],
+                    "extensions": null,
+                    "destination": "~/Downloads/Unsorted/",
+                    "whitelist": null
+                }
+            ]
+        }
+    ]
+}

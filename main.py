@@ -67,16 +67,21 @@ class  MoveToken():
             * The source exists.
             * The source and destination parent folders are NOT equal.\n
                 e.g "~/Downloads/cheese.txt" -> "~/Downloads/" is not valid.\n
+            * The source folder is NOT the folder that contains this program.\n 
         '''
         if not os.path.exists(self.source):
             return False
 
         if os.path.isdir(self.source):
             source_folder = self.source
-        else: # Strip the filename to unveil the source folder 
+
+        else: # Strip the filename to unveil the source folder
             source_folder = os.path.dirname(self.source)
 
-        return source_folder != self.destination
+        check_1: bool = source_folder != self.destination
+        check_2: bool = source_folder != os.path.dirname(os.path.realpath(__file__))
+
+        return check_1 and check_2
 
 class FolderTemplate():
     ''' Given a root folder and a list of folder names,
@@ -262,9 +267,6 @@ def move(move_token_list: list[MoveToken]):
     Will automatically rename duplicates.\n
     Will automatically create a folder if it doesn't exist.
     '''
-    # TODO
-    # move_token_list = filter_looping_files(move_token_list)
-
     # for a in move_token_list:
     #     print(f"src: {a.source}, dest: {a.destination}")
 
@@ -278,15 +280,11 @@ def move(move_token_list: list[MoveToken]):
         if not os.path.exists(move_token.destination):
             os.makedirs(move_token.destination)
         try:
-            shutil.move(move_token.source, os.path.expanduser(move_token.destination))
+            # shutil.move(move_token.source, os.path.expanduser(move_token.destination))
             print(f"moved: {move_token.destination} <-- {move_token.source}")
 
         except Exception as error:
             print(f"Move failed: {error}")
-
-# def filter_if_has_fallback(folder_templates: list[FolderTemplate]) -> list[FolderTemplate]:
-#     '''We only want FolderTemplates if they contain a folder to put files to.'''
-#     return filter(lambda folder_template: folder_template.place_for_unwanted is not None, folder_templates)
 
 def filter_by_whitelist(list_of_files: list[File], whitelist: list[str]) -> list[File]:
     ''' Return an iterator of non whitelisted Files '''
@@ -299,21 +297,6 @@ def filter_by_extension(list_of_files: list[File], extensions: list[str]) -> lis
 def filter_by_key_word(list_of_files: list[File], words: list[str]) -> list[File]:
     ''' Return an iterator of Files if their filenames satisfy a particluar word'''
     return filter(lambda file: re.search(as_regex(words), file.name.lower()), list_of_files)
-
-# def filter_looping_files(move_tokens: list[MoveToken]):
-#     ''' It is possible for a move token to have the same destination
-#         as the file/folder's root, we need to get rid of those
-#     '''
-#     fresh_tokens: list[MoveToken] = []
-
-#     for move_token in move_tokens:
-#         a = os.path.dirname(move_token.source)
-#         b = move_token.destination
-#         if a != b:
-#             # print(f"{a}, {b}")
-#             fresh_tokens.append(move_token)
-
-#     return fresh_tokens
 
 def as_regex(list_of_key_words: list[str]) -> str:
     # TODO sanitise words in list to get rid of special characters
@@ -411,12 +394,12 @@ def main():
     # generate_folders(folder_gen)
     config.export("./epic_config.json")
 
-    enforcer = Enforcer(config)
-    # enforcer.generate_folders()
-    enforcer.sort_folders()
-    enforcer.sort_files()
+    # enforcer = Enforcer(config)
+    # # enforcer.generate_folders()
+    # enforcer.sort_folders()
+    # enforcer.sort_files()
     # move(enforcer.move_tokens)
-    move(enforcer.move_tokens)
+    # move(enforcer.move_tokens)
 
     # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
     # for s in enforcer.move_tokens:

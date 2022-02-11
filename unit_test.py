@@ -9,7 +9,6 @@ class Testclass(unittest.TestCase):
         These classes contain no methods for serialisation purposes.
         So do not expect these classes to contain methods.      
         '''
-        #--------------------------------------------#
 
         data_1 = ("test_file", "exe",  "~/Downloads")
         data_2 = ("test_file", ".jar", "~/Downloads")
@@ -37,39 +36,58 @@ class Testclass(unittest.TestCase):
         self.assertEqual(folder_1.path, data_3[1])
 
         self.assertEqual(folder_2.name, data_4[0])
-        self.assertEqual(folder_2.path, data_4[1])
+        self.assertEqual(folder_2.path, data_4[1])        
 
-    def test_move_token(self):
-        '''
-        The move token class stores 2 strings:
-        1) Source (Can either be a file or folder)
-        2) Destination
-
-        We need to ensure that these two properties are fully expanded, i.e no "~"
-
-        Future problem:
-            We don't want the source and destination folder to be the same
-        '''
-        #--------------------------------------------#
-        
+    def test_move_token_same_folder(self):
+        '''Tokens with the same folder must be invalid'''
         source_1, destination_1 = ("./test_folder", "./test_folder")
 
         move_token_1 = main.MoveToken(source_1, destination_1)
         self.assertFalse(move_token_1.is_valid())
 
-        #--------------------------------------------#
-        # Non-existent sources should return false
-        source_2, destination_2 = ("./test_folder_two/fjajfldajfldajflda.txt", "./test_folder")
+        # Why would we move a file to the same directory?
+        # This ensure the move token returns false
+        source_2, destination_2 = ("./test_folder/test_file.txt", "./test_folder")
 
         move_token_2 = main.MoveToken(source_2, destination_2)
         self.assertFalse(move_token_2.is_valid())
 
+    def test_move_token_non_existent_path(self):
+        '''MoveTokens with a non existent SOURCE are invalid'''
         #--------------------------------------------#
+        source_1, destination_1 = ("./test_folder_two/fjajfldajfldajflda.txt", "./test_folder")
+
+        move_token_1 = main.MoveToken(source_1, destination_1)
+        self.assertFalse(move_token_1.is_valid())
+
+    def test_move_token_existent_path(self):
+        '''MoveTokens with an existent SOURCE are valid'''
+
         # Existing files, should return true
-        source_3, destination_3 = ("./test_folder/test_file.txt", "./test_folder_3")
+        source_1, destination_1 = ("./test_folder/test_file.txt", "./test_folder_3")
 
-        move_token_3 = main.MoveToken(source_3, destination_3)
-        self.assertTrue(move_token_3.is_valid())
-        # pass
+        move_token_1 = main.MoveToken(source_1, destination_1)
+        self.assertTrue(move_token_1.is_valid())
 
+    def test_move_token_no_self_harm(self):
+        ''' We don't want the program to move the FOLDER containing THIS project
+            Using os.chdir() should not cause issues
+        '''
+        import os
 
+        # Make sure the FOLDER containing this project is untotched
+        this_code_path      = os.path.realpath(__file__)
+        this_code_folder    = os.path.dirname(this_code_path)
+        test_destination    = "~/Downloads"
+
+        move_token_1 = main.MoveToken(this_code_path, test_destination)
+        self.assertFalse(move_token_1.is_valid())
+
+        move_token_2 = main.MoveToken(this_code_folder, test_destination)
+        self.assertFalse(move_token_2.is_valid())
+
+if __name__ == "__main__":
+    import os
+    os.chdir(os.path.expanduser("~/Downloads/"))
+    dir_path = os.path.realpath(__file__)
+    print(dir_path)
