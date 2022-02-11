@@ -1,0 +1,95 @@
+{
+  "main": {
+    "id": "09c6e33251ff3504",
+    "type": "split",
+    "children": [
+      {
+        "id": "3d4f1618f8860f9c",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "making custom configs.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "29ee2f7069b01b85",
+    "type": "split",
+    "children": [
+      {
+        "id": "4b271c86d8e7d92f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f1d35db43012a9f4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "e736af3965b5af15",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "right": {
+    "id": "e6bf856ff7c14db7",
+    "type": "split",
+    "children": [
+      {
+        "id": "52f99fe3a8573294",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8a07fb524f6207ce",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "making custom configs.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "3d4f1618f8860f9c",
+  "lastOpenFiles": [
+    "making custom configs.md",
+    "architechture.md"
+  ]
+}

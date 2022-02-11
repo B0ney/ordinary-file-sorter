@@ -131,7 +131,7 @@ class Config():
         operations:         list[Operation] = None
         ):
         self.folder_templates   = folder_templates
-        self.file_operations    = operations
+        self.operations    = operations
 
     def export(self, file_path: str):
         '''Serializes Config to JSON'''
@@ -197,7 +197,7 @@ class Enforcer():
         ''' Move files based on their extensions,
             key words and whitelist status to a specified location.
         '''
-        operations = self.config.file_operations
+        operations = self.config.operations
 
         for operation in operations:
             for source in operation.scan_sources:
@@ -369,7 +369,7 @@ def main():
         create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
         create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
         create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"]),
-        # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
+        # # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
 
     ]  
     operations = Operation(
@@ -405,11 +405,11 @@ def main():
 
     config.export("./epic_config.json")
 
-    # enforcer = Enforcer(config)
+    enforcer = Enforcer(config)
     # # enforcer.generate_folders()
     # enforcer.sort_folders()
-    # enforcer.sort_files()
-    # move(enforcer.move_tokens)
+    enforcer.sort_files()
+    move(enforcer.move_tokens)
 
     # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
 
