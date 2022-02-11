@@ -77,12 +77,14 @@ class  MoveToken():
 
         if os.path.isdir(self.source):
             source_folder = self.source
+            program_path = os.path.dirname(os.path.realpath(__file__))
 
         else: # Strip the filename to unveil the source folder
             source_folder = os.path.dirname(self.source)
+            program_path = os.path.realpath(__file__)
 
         check_1: bool = source_folder   != self.destination
-        check_2: bool = self.source     != os.path.realpath(__file__)
+        check_2: bool = self.source     != program_path
 
         return check_1 and check_2
 
@@ -245,10 +247,12 @@ class Enforcer():
 
 def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
     '''Scan a directory, return a tuple of scanned files and folders'''
-    if not os.path.exists(os.path.expanduser(folder)):
+    folder = os.path.expanduser(folder)
+
+    if not os.path.exists(folder):
         raise Exception(f"Path '{folder}' does not exist!")
 
-    files = os.scandir(os.path.expanduser(folder))
+    files = os.scandir(folder)
 
     scanned_files = []
     scanned_folders = []
@@ -258,6 +262,7 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
         path = os.path.abspath(file)
 
         if file.is_file():
+            
             scanned_files.append(File(name, extension.strip("."), path))
 
         if file.is_dir():
@@ -328,25 +333,25 @@ def check_and_rename_dupes(source: str, destination: str) -> str:
     old_file = source
     (path, file_name) = os.path.split(source)
     potential_destination = os.path.join(destination, file_name)
-    file_exists = os.path.exists(potential_destination)
+    path_exists = os.path.exists(potential_destination)
 
-    if not file_exists:
+    if not path_exists:
         return source
 
     generation = 1
     (file_name, extension) = os.path.splitext(os.path.basename(file_name))
 
-    while file_exists:
+    while path_exists:
         new_file_name = f"{file_name} ({generation}){extension}"
         potential_destination = os.path.join(destination, new_file_name)
-        file_exists = os.path.exists(potential_destination)
+        path_exists = os.path.exists(potential_destination)
         generation += 1
 
 
-    new_source_file_name = os.path.join(path,new_file_name)
-    os.rename(old_file, new_source_file_name)
-    print(f"Renamed duplicate file: {source} -> {new_source_file_name}")
-    return new_source_file_name
+    new_source_path_name = os.path.join(path,new_file_name)
+    os.rename(old_file, new_source_path_name)
+    print(f"Renamed duplicate file: {source} -> {new_source_path_name}")
+    return new_source_path_name
 
 def main():
     ''' main'''
