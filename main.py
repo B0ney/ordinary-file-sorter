@@ -1,3 +1,5 @@
+''' Main program
+'''
 import re
 import os.path
 import shutil
@@ -25,7 +27,7 @@ class FileRule():
     ''' Used as a filter for files with the following properties:\n
         * key words -> E.g. "screenshot" or "wallpaper".\n
         * extensions -> E.g. "zip", "7z" or "".\n
-        * whitelist -> Filenames that exactly match words in a whitelist will be ignored. E.g. "icon".\n
+        * whitelist -> Ignore filenames if it matches an exact word from a whitelist. E.g. "icon".\n
         * destination -> Where files should be moved if it satisfies the criteria above.
     '''
     def __init__(
@@ -39,6 +41,7 @@ class FileRule():
         self.extensions     = extensions
         self.destination    = destination
         self.whitelist      = whitelist
+        # self.action
 
 class  MoveToken():
     ''' Stores the Source of a file/folder and the destination'''
@@ -102,11 +105,11 @@ class FolderTemplate():
         '''Produces a list of folders with their raw path'''
         return map(lambda folder: os.path.join(self.root_folder, folder), self.folders)
 
-class FileOperations():
-    ''' With this we can scan a list of directories '''
+class Operation():
+    ''' Stores a list of sources and a list of rules'''
     def __init__(self, source: list[str], rules: list[FileRule]):
-        self.sources  = source
-        self.rules    = rules
+        self.scan_sources   = source
+        self.rules          = rules
 
 class Config():
     ''' The configuration for our file sorting.
@@ -115,10 +118,10 @@ class Config():
     def __init__(
         self,
         folder_templates: list[FolderTemplate] = None,
-        file_operations: list[FileOperations] = None
+        operations: list[Operation] = None
         ):
         self.folder_templates   = folder_templates
-        self.file_operations    = file_operations
+        self.file_operations    = operations
 
     def export(self, file_path: str):
         '''Serializes Config to JSON'''
@@ -189,7 +192,7 @@ class Enforcer():
         operations = self.config.file_operations
 
         for operation in operations:
-            for source in operation.sources:
+            for source in operation.scan_sources:
                 self.scan_files(source)
 
             for rule in operation.rules:
@@ -364,7 +367,7 @@ def main():
         # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
 
     ]  
-    operations = FileOperations(
+    operations = Operation(
         source = sources,
         rules = rules
     )
@@ -389,7 +392,7 @@ def main():
     ]
     config = Config(
         folder_templates = folder_gen,
-        file_operations = [operations]
+        operations = [operations]
     )
     # generate_folders(folder_gen)
     config.export("./epic_config.json")
