@@ -103,7 +103,8 @@
         {
           "keywords": null,
           "extensions": [
-            "jpg"
+            "jpg",
+            "png"
           ],
           "whitelist": null,
           "destination": "~/Pictures/"

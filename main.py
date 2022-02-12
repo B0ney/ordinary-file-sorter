@@ -5,7 +5,6 @@ import os.path
 import shutil
 import json
 from typing import Tuple
-
 class Folder():
     ''' Stores the folder name and its full path'''
     def __init__(self, name: str, path: str):
@@ -35,7 +34,7 @@ class FileRule():
         keywords:       list[str],
         extensions:     list[str],
         destination:    str,
-        whitelist:      list[str] = None
+        whitelist:      list[str] = None,
     ) -> None:
         self.keywords       = keywords
         self.extensions     = extensions
@@ -98,13 +97,13 @@ class FolderTemplate():
     '''
     def __init__(
         self,
-        root_folder:    str,
-        folders:        list[str],
-        unknown_folder: str = None
+        root_folder:        str,
+        folders:            list[str],
+        place_for_unwanted: str = None
     ) -> None:
         self.root_folder          = root_folder
         self.folders              = folders
-        self.place_for_unwanted   = unknown_folder
+        self.place_for_unwanted   = place_for_unwanted
 
     @property
     def as_iter(self) -> list[str]: # too much rust influence
@@ -115,10 +114,10 @@ class Operation():
     ''' Stores a list of sources and a list of rules'''
     def __init__(
         self,
-        source: list[str],
+        scan_sources: list[str],
         rules:  list[FileRule]
     ) -> None:
-        self.scan_sources   = source
+        self.scan_sources   = scan_sources
         self.rules          = rules
 
 class Config():
@@ -135,17 +134,11 @@ class Config():
 
     def export(self, file_path: str):
         '''Serializes Config to JSON'''
-        # TODO: add error handling
         with open(file_path, "w") as out_file:
             json.dump(self, out_file, indent = 2, default=lambda o: o.__dict__)
 
-    # def load(self, file_path: str):
-    #     pass
-
 class Enforcer():
-    '''
-    Responsible for enforcing rules and configurations set up by the Config class.
-    '''
+    '''Responsible for enforcing rules and configurations set up by the Config class.'''
     def __init__(self, config: Config) -> None:
         self.config:            Config          = config
         self.move_tokens:       list[MoveToken] = []
@@ -313,22 +306,22 @@ def as_regex(list_of_key_words: list[str]) -> str:
     return f"{'|'.join(list_of_key_words)}"
 
 def create_file_rule(
-    destination: str,
-    extensions: list[str]   = None,
-    key_words: list[str]    = None,
-    whitelist: list[str]    = None
+    destination:    str,
+    extensions:     list[str]   = None,
+    keywords:       list[str]   = None,
+    whitelist:      list[str]   = None
 ) -> FileRule:
     ''' Creates a FileRule object given these parameters'''
-    assert not (extensions is None and key_words is None)
-    # raise "You must provide at least a list of extensions or a list of key words!"
+    assert not (extensions is None and keywords is None)
 
     return FileRule(
-        key_words,
-        extensions,
-        destination,
-        whitelist,
+        keywords    = keywords,
+        extensions  = extensions,
+        destination = destination,
+        whitelist   = whitelist,
     )
 
+# sloppy stuff, but works
 def check_and_rename_dupes(source: str, destination: str) -> str:
     ''' Renames a duplicate file/folder.
         Needs refactoring
@@ -355,6 +348,48 @@ def check_and_rename_dupes(source: str, destination: str) -> str:
     print(f"Renamed duplicate file: {source} -> {new_source_path_name}")
     return new_source_path_name
 
+def load_config(config_path: str) -> Config:
+    '''A rough implementation, creates a config class from a .json'''
+    with open(config_path, "r", encoding="UTF-8") as file:
+        a = json.load(file)
+
+    templates: list[FolderTemplate] = []
+    operations: list[Operation]     = []
+
+    for b in a["folder_templates"]:
+        templates.append(
+            FolderTemplate(
+                root_folder         = b["root_folder"],
+                folders             = b["folders"],
+                place_for_unwanted  = b["place_for_unwanted"]
+            )
+        )
+    for c in a["operations"]:
+        file_rules: list(FileRule) = []
+
+        for rule in c["rules"]:
+            file_rules.append(
+                FileRule(
+                    extensions  = rule["extensions"],
+                    keywords    = rule["keywords"],
+                    whitelist   = rule["whitelist"],
+                    destination = rule["destination"]
+                )
+            )
+
+        operations.append(
+            Operation(
+                scan_sources    = c["scan_sources"],
+                rules           = file_rules
+            )
+        )
+
+    return Config(
+        folder_templates    = templates,
+        operations          = operations
+        )
+# sloppy stuff ends here
+
 def main():
     ''' main'''
     sources = ["~/Downloads", "~/Pictures","~/Downloads/Unsorted"]
@@ -364,21 +399,19 @@ def main():
         create_file_rule("~/Downloads/Programs", extensions=["exe","elf","bin","deb", "rpm","msi","appimage"]),
         create_file_rule("~/Downloads/Music", extensions=["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa","m4a"]),
         create_file_rule("~/Downloads/Music/midi", extensions=["mid"]),
-        create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], key_words=["wallpaper", "unsplash"]),
-        create_file_rule("~/Pictures/", extensions=["jpg"]),
-        create_file_rule("~/Pictures/Screenshot", key_words=["screenshot"]),
+        create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], keywords=["wallpaper", "unsplash"]),
+        create_file_rule("~/Pictures/", extensions=["jpg","png"]),
+        create_file_rule("~/Pictures/Screenshot", keywords=["screenshot"]),
         create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
         create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"]),
-        # # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
-
     ]
     operations = Operation(
-        source = sources,
+        scan_sources = sources,
         rules = rules
     )
     unsorted_stuff = Operation(
-        source = ["~/Downloads"],
-        rules = [create_file_rule("~/Downloads/Unsorted/", key_words="")]
+        scan_sources = ["~/Downloads"],
+        rules = [create_file_rule("~/Downloads/Unsorted/", keywords="")]
     )
     folder_gen = [
         FolderTemplate(
@@ -405,15 +438,14 @@ def main():
 
     config.export("./epic_config.json")
 
-    # enforcer = Enforcer(config)
-    # # # enforcer.generate_folders()
-    # # enforcer.sort_folders()
-    # enforcer.sort_files()
-    # move(enforcer.move_tokens)
+    new_config: Config = load_config("./epic_config.json")
 
-    # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
+    test_conf = Enforcer(new_config)
+    test_conf.generate_folders()
+    test_conf.sort_folders()
+    test_conf.sort_files()
 
-
+    move(test_conf.move_tokens)
 
 
 if __name__ == "__main__":
