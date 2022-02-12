@@ -9,8 +9,8 @@ from typing import Tuple
 class Folder():
     ''' Stores the folder name and its full path'''
     def __init__(self, name: str, path: str):
-        self.name           = name
-        self.path           = path
+        self.name   = name
+        self.path   = path
 
 class File():
     ''' Stores the file name, file extension and its full path.\n
@@ -19,9 +19,9 @@ class File():
         "path" defines the full path of a file.
     '''
     def __init__(self, name: str, extension: str, path: str):
-        self.name           = name
-        self.extension      = extension
-        self.path           = path
+        self.name       = name
+        self.extension  = extension
+        self.path       = path
 
 class FileRule():
     ''' Used as a filter for files with the following properties:\n
@@ -32,15 +32,15 @@ class FileRule():
     '''
     def __init__(
         self,
-        key_words:      list[str],
+        keywords:       list[str],
         extensions:     list[str],
         destination:    str,
         whitelist:      list[str] = None
     ) -> None:
-        self.key_words      = key_words
+        self.keywords       = keywords
         self.extensions     = extensions
-        self.destination    = destination
         self.whitelist      = whitelist
+        self.destination    = destination
         # self.action
 
 class  MoveToken():
@@ -74,18 +74,18 @@ class  MoveToken():
             * The source exists.
             * The source and destination parent folders are NOT equal.\n
                 e.g "~/Downloads/cheese.txt" -> "~/Downloads/" is not valid.\n
-            * The source folder is NOT the folder that contains this program.\n 
+            * The source folder is NOT the folder that contains this program.\n
         '''
         if not os.path.exists(self.source):
             return False
 
         if os.path.isdir(self.source):
-            source_folder = self.source
-            program_path =  os.path.dirname(os.path.realpath(__file__))
+            source_folder   = self.source
+            program_path    =  os.path.dirname(os.path.realpath(__file__))
 
         else: # Strip the filename to unveil the source folder
-            source_folder = os.path.dirname(self.source)
-            program_path =  os.path.realpath(__file__)
+            source_folder   = os.path.dirname(self.source)
+            program_path    = os.path.realpath(__file__)
 
         check_1: bool = source_folder   != self.destination
         check_2: bool = self.source     != program_path
@@ -127,17 +127,17 @@ class Config():
     '''
     def __init__(
         self,
-        folder_templates:   list[FolderTemplate] = None,
-        operations:         list[Operation] = None
-        ):
+        folder_templates:   list[FolderTemplate]    = None,
+        operations:         list[Operation]         = None
+    ) -> None:
         self.folder_templates   = folder_templates
-        self.operations    = operations
+        self.operations         = operations
 
     def export(self, file_path: str):
         '''Serializes Config to JSON'''
         # TODO: add error handling
         with open(file_path, "w") as out_file:
-            json.dump(self, out_file, indent = 4, default=lambda o: o.__dict__)
+            json.dump(self, out_file, indent = 2, default=lambda o: o.__dict__)
 
     # def load(self, file_path: str):
     #     pass
@@ -146,7 +146,7 @@ class Enforcer():
     '''
     Responsible for enforcing rules and configurations set up by the Config class.
     '''
-    def __init__(self, config: Config):
+    def __init__(self, config: Config) -> None:
         self.config:            Config          = config
         self.move_tokens:       list[MoveToken] = []
         self.files:             list[File]      = []
@@ -233,8 +233,8 @@ class Enforcer():
         if rule.extensions is not None:
             filtered_files = filter_by_extension(filtered_files, rule.extensions)
 
-        if rule.key_words is not None:
-            filtered_files = filter_by_key_word(filtered_files, rule.key_words)
+        if rule.keywords is not None:
+            filtered_files = filter_by_key_word(filtered_files, rule.keywords)
 
         return filtered_files
 
@@ -242,7 +242,7 @@ class Enforcer():
         self,
         rule: FileRule,
         filtered_files: list[File]
-        ) -> list[MoveToken]:
+    ) -> list[MoveToken]:
         ''' Generates a list of MoveTokens given a file rule and a list of File objects'''
         template_list: list[MoveToken] = []
 
@@ -260,7 +260,7 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
 
     files = os.scandir(folder)
 
-    scanned_files = []
+    scanned_files   = []
     scanned_folders = []
 
     for file in files:
@@ -314,10 +314,10 @@ def as_regex(list_of_key_words: list[str]) -> str:
 
 def create_file_rule(
     destination: str,
-    extensions: list[str] = None,
-    key_words: list[str] = None,
-    whitelist: list[str] = None
-    ) -> FileRule:
+    extensions: list[str]   = None,
+    key_words: list[str]    = None,
+    whitelist: list[str]    = None
+) -> FileRule:
     ''' Creates a FileRule object given these parameters'''
     assert not (extensions is None and key_words is None)
     # raise "You must provide at least a list of extensions or a list of key words!"
@@ -371,7 +371,7 @@ def main():
         create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"]),
         # # create_file_rule("~/Downloads/Compressed", extensions=["zip"]),
 
-    ]  
+    ]
     operations = Operation(
         source = sources,
         rules = rules
@@ -405,11 +405,11 @@ def main():
 
     config.export("./epic_config.json")
 
-    enforcer = Enforcer(config)
-    # # enforcer.generate_folders()
-    # enforcer.sort_folders()
-    enforcer.sort_files()
-    move(enforcer.move_tokens)
+    # enforcer = Enforcer(config)
+    # # # enforcer.generate_folders()
+    # # enforcer.sort_folders()
+    # enforcer.sort_files()
+    # move(enforcer.move_tokens)
 
     # print(json.dumps([operations, operations], indent = 4, default=lambda o: o.__dict__))
 
