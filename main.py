@@ -5,6 +5,7 @@ import os.path
 import shutil
 import json
 from typing import Tuple
+
 class Folder():
     ''' Stores the folder name and its full path'''
     def __init__(self, name: str, path: str):
@@ -27,69 +28,22 @@ class FileRule():
         * key words -> E.g. "screenshot" or "wallpaper".\n
         * extensions -> E.g. "zip", "7z" or "".\n
         * whitelist -> Ignore filenames if it matches an exact word from a whitelist. E.g. "icon".\n
+        * action -> COPY, MOVE, DELETE
         * destination -> Where files should be moved if it satisfies the criteria above.
     '''
     def __init__(
         self,
         keywords:       list[str],
         extensions:     list[str],
+        action:         str,
         destination:    str,
         whitelist:      list[str] = None,
     ) -> None:
         self.keywords       = keywords
         self.extensions     = extensions
         self.whitelist      = whitelist
+        self.action         = action
         self.destination    = destination
-        # self.action
-
-class  MoveToken():
-    ''' Stores the Source of a file/folder and the destination'''
-    def __init__(
-        self,
-        source:         str,
-        destination:    str
-    ) -> None:
-        self.source         = source
-        self.destination    = destination
-
-    @property
-    def source(self):
-        return self.__source
-
-    @source.setter
-    def source(self, source_path: str):
-        self.__source = os.path.normpath(os.path.expanduser(source_path))
-
-    @property
-    def destination(self):
-        return self.__destination
-
-    @destination.setter
-    def destination(self, dest_path: str):
-        self.__destination = os.path.normpath(os.path.expanduser(dest_path))
-
-    def is_valid(self) -> bool:
-        ''' A move token is valid if:\n
-            * The source exists.
-            * The source and destination parent folders are NOT equal.\n
-                e.g "~/Downloads/cheese.txt" -> "~/Downloads/" is not valid.\n
-            * The source folder is NOT the folder that contains this program.\n
-        '''
-        if not os.path.exists(self.source):
-            return False
-
-        if os.path.isdir(self.source):
-            source_folder   = self.source
-            program_path    =  os.path.dirname(os.path.realpath(__file__))
-
-        else: # Strip the filename to unveil the source folder
-            source_folder   = os.path.dirname(self.source)
-            program_path    = os.path.realpath(__file__)
-
-        check_1: bool = source_folder   != self.destination
-        check_2: bool = self.source     != program_path
-
-        return check_1 and check_2
 
 class FolderTemplate():
     ''' Given a root folder and a list of folder names,
@@ -120,6 +74,63 @@ class Operation():
         self.scan_sources   = scan_sources
         self.rules          = rules
 
+class  Token():
+    ''' Stores the Source of a file/folder and the destination'''
+    def __init__(
+        self,
+        source:         str,
+        destination:    str,
+        action:         str,
+    ) -> None:
+        self.source         = source
+        self.destination    = destination
+        self.action         = action
+
+    def __repr__(self) -> str:
+        return f"Token {{is valid: '{self.is_valid()}' }}  {{ action: '{self.action}' }}  {{ dest: '{self.destination}' }}  {{ source: '{self.source}' }}"
+
+    @property
+    def source(self):
+        return self.__source
+
+    @source.setter
+    def source(self, source_path: str):
+        self.__source = os.path.normpath(os.path.expanduser(source_path))
+
+    @property
+    def destination(self):
+        return self.__destination
+
+    @destination.setter
+    def destination(self, dest_path: str):
+        if dest_path is not None:
+            self.__destination   = os.path.normpath(os.path.expanduser(dest_path))
+        else: self.__destination = None
+
+    def is_valid(self) -> bool:
+        ''' A move token is valid if:\n
+            * The source exists.
+            * The source and destination parent folders are NOT equal.\n
+                e.g "~/Downloads/cheese.txt" -> "~/Downloads/" is not valid.\n
+            * The source folder is NOT the folder that contains this program.\n
+            * The source is not this program.
+        '''
+        if not os.path.exists(self.source):
+            return False
+
+        if os.path.isdir(self.source):
+            source_folder   = self.source
+            program_path    = os.path.dirname(os.path.realpath(__file__))
+
+        else: # Strip the filename to unveil the source folder
+            source_folder   = os.path.dirname(self.source)
+            program_path    = os.path.realpath(__file__)
+
+        check_1: bool = source_folder   != self.destination
+        check_2: bool = self.source     != program_path
+
+        return check_1 and check_2
+
 class Config():
     ''' The configuration for our file sorting.
         Stores a list of FolderTemplates and a list of FileOperations
@@ -141,7 +152,7 @@ class Enforcer():
     '''Responsible for enforcing rules and configurations set up by the Config class.'''
     def __init__(self, config: Config) -> None:
         self.config:            Config          = config
-        self.move_tokens:       list[MoveToken] = []
+        self.tokens:            list[Token]     = []
         self.files:             list[File]      = []
         self.folders:           list[Folder]    = []
         self.scanned_sources:   list[File]      = []
@@ -164,11 +175,10 @@ class Enforcer():
                     print(f"WARN: Could not create folder: '{folder}', {err}")
 
     def sort_folders(self):
+        ''' Move folders not specified by the folder template to a specified folder.\n
+            Folder templates that do not have a dedicated place for these folders are ignored. 
         '''
-        Move folders not specified by the folder template to a specified folder.\n
-        Folder templates that do not have a dedicated place for these folders are ignored. 
-        '''
-        move_tokens: list[MoveToken] = []
+        move_tokens: list[Token] = []
 
         for folder_template in self.config.folder_templates:
 
@@ -182,23 +192,21 @@ class Enforcer():
                 folder_path = folder.path
 
                 if folder.name not in folder_template.folders:
-                    move_tokens.append(MoveToken(folder_path, unhandled_files_dir))
+                    move_tokens.append(Token(folder_path, unhandled_files_dir, "MOVE"))
 
-        self.move_tokens += move_tokens
+        self.tokens += move_tokens
 
     def sort_files(self):
         ''' Move files based on their extensions,
             key words and whitelist status to a specified location.
         '''
-        operations = self.config.operations
-
-        for operation in operations:
+        for operation in self.config.operations:
             for source in operation.scan_sources:
                 self.scan_files(source)
 
             for rule in operation.rules:
                 filtered_files = self.filter_files(rule)
-                self.move_tokens += self.generate_file_move_tokens(rule, filtered_files)
+                self.tokens += self.generate_file_move_tokens(rule, filtered_files)
 
             self.files              = []
             self.folders            = []
@@ -235,12 +243,12 @@ class Enforcer():
         self,
         rule: FileRule,
         filtered_files: list[File]
-    ) -> list[MoveToken]:
+    ) -> list[Token]:
         ''' Generates a list of MoveTokens given a file rule and a list of File objects'''
-        template_list: list[MoveToken] = []
+        template_list: list[Token] = []
 
         for file in filtered_files:
-            template_list.append(MoveToken(file.path, rule.destination))
+            template_list.append(Token(file.path, rule.destination, rule.action))
 
         return template_list
 
@@ -268,23 +276,23 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
 
     return (scanned_files, scanned_folders)
 
-def move(move_token_list: list[MoveToken]):
+def move(token_list: list[Token]):
     ''' Move files and folders according to the list of MoveTokens.\n
         Will automatically rename duplicates.\n
         Will automatically create a folder if it doesn't exist.
     '''
-    for move_token in move_token_list:
-        if not move_token.is_valid():
+    for token in token_list:
+        if not token.is_valid():
             print("Skipping invalid token...")
             continue
 
-        move_token.source = check_and_rename_dupes(move_token.source, move_token.destination)
+        token.source = check_and_rename_dupes(token.source, token.destination)
 
-        if not os.path.exists(move_token.destination):
-            os.makedirs(move_token.destination)
+        if not os.path.exists(token.destination):
+            os.makedirs(token.destination)
         try:
-            shutil.move(move_token.source, move_token.destination)
-            print(f"moved: {move_token.destination} <-- {move_token.source}")
+            shutil.move(token.source, token.destination)
+            print(f"moved: {token.destination} <-- {token.source}")
 
         except Exception as error:
             print(f"Move failed: {error}")
@@ -307,9 +315,10 @@ def as_regex(list_of_key_words: list[str]) -> str:
 
 def create_file_rule(
     destination:    str,
+    action:         str         = "MOVE",
     extensions:     list[str]   = None,
     keywords:       list[str]   = None,
-    whitelist:      list[str]   = None
+    whitelist:      list[str]   = None,
 ) -> FileRule:
     ''' Creates a FileRule object given these parameters'''
     assert not (extensions is None and keywords is None)
@@ -319,6 +328,7 @@ def create_file_rule(
         extensions  = extensions,
         destination = destination,
         whitelist   = whitelist,
+        action      = action
     )
 
 # sloppy stuff, but works
@@ -373,7 +383,8 @@ def load_config(config_path: str) -> Config:
                     extensions  = rule["extensions"],
                     keywords    = rule["keywords"],
                     whitelist   = rule["whitelist"],
-                    destination = rule["destination"]
+                    destination = rule["destination"],
+                    action      = rule["action"]
                 )
             )
 
@@ -403,7 +414,7 @@ def main():
         create_file_rule("~/Pictures/", extensions=["jpg","png"]),
         create_file_rule("~/Pictures/Screenshot", keywords=["screenshot"]),
         create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
-        create_file_rule("~/Downloads/Video", extensions=["mp4","mkv"]),
+        create_file_rule(destination=None, extensions=["mp4","mkv"]),
     ]
     operations = Operation(
         scan_sources = sources,
@@ -445,8 +456,9 @@ def main():
     test_conf.sort_folders()
     test_conf.sort_files()
 
-    move(test_conf.move_tokens)
-
+    for token in test_conf.tokens:
+        print(token)
+    # move(test_conf.move_tokens)
 
 if __name__ == "__main__":
     main()
