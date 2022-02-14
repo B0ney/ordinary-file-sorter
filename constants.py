@@ -1,0 +1,8 @@
+PROGRAMS    = ["jar","exe","bin","deb","rpm","msi","appimage","dmg"]
+ARCHIVES    = ["zip","7z","tar","bz2","rar","xz","gz"]
+AUDIO       = ["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa","m4a"]
+VIDEO       = ["mp4","mkv","flv","mov","avi","webm"]
+IMAGE       = ["jpeg","jpg","png","bmp","gif"]
+DOCS        = ["pdf","txt","odt","docx","rtf"]
+SLIDES      = ["ppt","odp","pptx"]
+SPREADSHEET = ["xlsx"]
