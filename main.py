@@ -27,7 +27,7 @@ class FileRule():
     ''' Used as a filter for files with the following properties:\n
         * key words -> E.g. "screenshot" or "wallpaper".\n
         * extensions -> E.g. "zip", "7z" or "".\n
-        * whitelist -> Ignore filenames if it matches an exact word from a whitelist. E.g. "icon".\n
+        * whitelist -> (OPTIONAL) Ignore filenames if it matches an exact word from a whitelist. E.g. "icon".\n
         * action -> COPY, MOVE, DELETE
         * destination -> Where files should be moved if it satisfies the criteria above.
     '''
@@ -68,8 +68,8 @@ class Operation():
     ''' Stores a list of sources and a list of rules'''
     def __init__(
         self,
-        scan_sources: list[str],
-        rules:  list[FileRule]
+        scan_sources:   list[str],
+        rules:          list[FileRule]
     ) -> None:
         self.scan_sources   = scan_sources
         self.rules          = rules
@@ -137,16 +137,18 @@ class Config():
     '''
     def __init__(
         self,
-        folder_templates:   list[FolderTemplate]    = None,
-        operations:         list[Operation]         = None
+        folder_templates:   list[FolderTemplate],
+        operations:         list[Operation]
     ) -> None:
         self.folder_templates   = folder_templates
         self.operations         = operations
 
     def export(self, file_path: str):
         '''Serializes Config to JSON'''
-        with open(file_path, "w") as out_file:
+        with open(file_path, "w", encoding="UTF-8") as out_file:
             json.dump(self, out_file, indent = 2, default=lambda o: o.__dict__)
+
+        print(f"Successfully exported to {file_path}")
 
 class Enforcer():
     '''Responsible for enforcing rules and configurations set up by the Config class.'''
@@ -180,19 +182,17 @@ class Enforcer():
         '''
         move_tokens: list[Token] = []
 
-        for folder_template in self.config.folder_templates:
+        for template in self.config.folder_templates:
 
-            if folder_template.place_for_unwanted is None:
+            if template.place_for_unwanted is None:
                 continue
 
-            (_, scanned_folders) = scandir(folder_template.root_folder)
+            (_, scanned_folders) = scandir(template.root_folder)
 
             for folder in scanned_folders:
-                unhandled_files_dir = folder_template.place_for_unwanted
-                folder_path = folder.path
-
-                if folder.name not in folder_template.folders:
-                    move_tokens.append(Token(folder_path, unhandled_files_dir, "MOVE"))
+                if folder.name not in template.folders:
+                    move_tokens.append(Token(
+                        folder.path, template.place_for_unwanted, "MOVE"))
 
         self.tokens += move_tokens
 
@@ -315,10 +315,10 @@ def as_regex(list_of_key_words: list[str]) -> str:
 
 def create_file_rule(
     destination:    str,
-    action:         str         = "MOVE",
     extensions:     list[str]   = None,
     keywords:       list[str]   = None,
     whitelist:      list[str]   = None,
+    action:         str         = "MOVE",
 ) -> FileRule:
     ''' Creates a FileRule object given these parameters'''
     assert not (extensions is None and keywords is None)
@@ -331,7 +331,8 @@ def create_file_rule(
         action      = action
     )
 
-# sloppy stuff, but works
+# Sloppy stuff, but works
+
 def check_and_rename_dupes(source: str, destination: str) -> str:
     ''' Renames a duplicate file/folder.
         Needs refactoring
@@ -402,63 +403,17 @@ def load_config(config_path: str) -> Config:
 # sloppy stuff ends here
 
 def main():
-    ''' main'''
-    sources = ["~/Downloads", "~/Pictures","~/Downloads/Unsorted"]
-    rules: list[FileRule] = [
-        create_file_rule("~/Downloads/Compressed", extensions=["zip", "7z", "tar", "bz2", "rar","xz","gz"]),
-        create_file_rule("~/Downloads/Compressed/Java", extensions=["jar"]),
-        create_file_rule("~/Downloads/Programs", extensions=["exe","elf","bin","deb", "rpm","msi","appimage"]),
-        create_file_rule("~/Downloads/Music", extensions=["mp3","mp2","wav","ogg","aac","flac","alac","dsd","mqa","m4a"]),
-        create_file_rule("~/Downloads/Music/midi", extensions=["mid"]),
-        create_file_rule("~/Pictures/wallpaper", extensions=["jpeg", "jpg", "png"], keywords=["wallpaper", "unsplash"]),
-        create_file_rule("~/Pictures/", extensions=["jpg","png"]),
-        create_file_rule("~/Pictures/Screenshot", keywords=["screenshot"]),
-        create_file_rule("~/Downloads/Misc/No extensions", extensions=[""]),
-        create_file_rule(destination=None, extensions=["mp4","mkv"]),
-    ]
-    operations = Operation(
-        scan_sources = sources,
-        rules = rules
-    )
-    unsorted_stuff = Operation(
-        scan_sources = ["~/Downloads"],
-        rules = [create_file_rule("~/Downloads/Unsorted/", keywords="")]
-    )
-    folder_gen = [
-        FolderTemplate(
-            "~/Downloads",
-            [
-                "Compressed",
-                "Documents",
-                "Pictures",
-                "Music",
-                "Video",
-                "Programs",
-                "Unsorted",
-                "Misc",
-                "Misc/Unsorted",
-                "Misc/No extensions",
-                "Misc/Folders"
-            ],
-            "~/Downloads/Folders"),
-    ]
-    config = Config(
-        folder_templates = folder_gen,
-        operations = [operations, unsorted_stuff]
-    )
-
-    config.export("./epic_config.json")
-
-    new_config: Config = load_config("./epic_config.json")
+    '''main program'''
+    new_config: Config = load_config("./configs/B0ney_config.json")
 
     test_conf = Enforcer(new_config)
     test_conf.generate_folders()
     test_conf.sort_folders()
     test_conf.sort_files()
-
-    for token in test_conf.tokens:
-        print(token)
-    # move(test_conf.move_tokens)
+    move(test_conf.tokens) # Temporary
+    # for token in test_conf.tokens:
+    #     print(token)
+    
 
 if __name__ == "__main__":
     main()

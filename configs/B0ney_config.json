@@ -1,0 +1,219 @@
+{
+  "folder_templates": [
+    {
+      "root_folder": "~/Downloads",
+      "folders": [
+        "Compressed",
+        "Documents",
+        "Pictures",
+        "Music",
+        "Music/midi",
+        "Video",
+        "Programs",
+        "Programs/Java",
+        "Programs/Shell",
+        "Programs/Python",
+        "Unsorted",
+        "Folders",
+        "Disk Images",
+        "Torrents",
+        "Torrents/Magnets",
+        "Misc",
+        "Misc/No extension"
+      ],
+      "place_for_unwanted": "~/Downloads/Folders"
+    },
+    {
+      "root_folder": "~/Pictures",
+      "folders": [
+        "Screenshots",
+        "Wallpapers"
+      ],
+      "place_for_unwanted": null
+    }
+  ],
+  "operations": [
+    {
+      "scan_sources": [
+        "~/Downloads",
+        "~/Downloads/Unsorted"
+      ],
+      "rules": [
+        {
+          "keywords": null,
+          "extensions": [
+            "zip",
+            "7z",
+            "tar",
+            "bz2",
+            "rar",
+            "xz",
+            "gz"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Compressed"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "pdf",
+            "txt",
+            "odt",
+            "docx",
+            "rtf"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Documents"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "jpeg",
+            "jpg",
+            "png",
+            "bmp",
+            "gif"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Pictures"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "mp3",
+            "mp2",
+            "wav",
+            "ogg",
+            "aac",
+            "flac",
+            "alac",
+            "dsd",
+            "mqa",
+            "m4a"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Music"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "exe",
+            "deb",
+            "msi",
+            "appimage"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "jar"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Java"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "py"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Python"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "sh"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Shell"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "torrent"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Torrents"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "magnet"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Torrents/Magnets"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "iso",
+            "img"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Disk Images"
+        },
+        {
+          "keywords": null,
+          "extensions": "",
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/No extension"
+        }
+      ]
+    },
+    {
+      "scan_sources": [
+        "~/Pictures",
+        "~/Downloads/Pictures"
+      ],
+      "rules": [
+        {
+          "keywords": [
+            "screenshot"
+          ],
+          "extensions": null,
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Pictures/Screenshots"
+        },
+        {
+          "keywords": [
+            "wallpaper",
+            "unsplash"
+          ],
+          "extensions": null,
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Pictures/Wallpapers"
+        }
+      ]
+    },
+    {
+      "scan_sources": [
+        "~/Downloads"
+      ],
+      "rules": [
+        {
+          "keywords": "",
+          "extensions": null,
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Unsorted/"
+        }
+      ]
+    }
+  ]
+}
