@@ -252,6 +252,35 @@ class Enforcer():
 
         return template_list
 
+    def enforce(self) -> None:
+        '''After we generate some tokens, we use them to sort files!'''
+        if self.tokens == []:
+            print("There's nothing to do!")
+            return
+
+        for token in self.tokens:
+            if not token.is_valid():
+                print("Skipping invalid token...")
+                continue
+
+            if token.action == "DELETE":
+                print("deleting file not implemented...")
+                continue
+
+            if not os.path.exists(token.destination):
+                os.makedirs(token.destination)
+
+            src = check_and_rename_dupes(token.source, token.destination)
+
+            if token.action == "MOVE":
+                move(src, token.destination)
+
+            elif token.action == "COPY":
+                copy(src, token.destination)
+
+            else:
+                print(f"Action:'{token.action}' not implemented.")
+
 def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
     '''Scan a directory, return a tuple of scanned files and folders'''
     folder = os.path.expanduser(folder)
@@ -276,26 +305,26 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
 
     return (scanned_files, scanned_folders)
 
-def move(token_list: list[Token]):
+def move(src: str, dest: str):
     ''' Move files and folders according to the list of MoveTokens.\n
         Will automatically rename duplicates.\n
         Will automatically create a folder if it doesn't exist.
     '''
-    for token in token_list:
-        if not token.is_valid():
-            print("Skipping invalid token...")
-            continue
+    try:
+        shutil.move(src, dest)
+        print(f"Moved: {dest} <-- {src}")
 
-        token.source = check_and_rename_dupes(token.source, token.destination)
+    except Exception as error:
+        print(f"Move failed: {error}")
 
-        if not os.path.exists(token.destination):
-            os.makedirs(token.destination)
-        try:
-            shutil.move(token.source, token.destination)
-            print(f"moved: {token.destination} <-- {token.source}")
+def copy(src: str, dest: str):
+    '''ssaadsa'''
+    try:
+        shutil.copy(src, dest)
+        print(f"Copied: {dest} <-- {src}")
 
-        except Exception as error:
-            print(f"Move failed: {error}")
+    except Exception as error:
+        print(f"Copy failed: {error}")
 
 def filter_by_whitelist(list_of_files: list[File], whitelist: list[str]) -> list[File]:
     ''' Return an iterator of non whitelisted Files '''
@@ -410,7 +439,9 @@ def main():
     test_conf.generate_folders()
     test_conf.sort_folders()
     test_conf.sort_files()
-    move(test_conf.tokens) # Temporary
+    test_conf.enforce()
+
+    # move(test_conf.tokens) # Temporary
     # for token in test_conf.tokens:
     #     print(token)
     
