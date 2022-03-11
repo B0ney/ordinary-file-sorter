@@ -258,16 +258,16 @@ class Enforcer():
     def enforce(self) -> None:
         '''After we generate some tokens, we use them to sort files!'''
         if self.tokens == []:
-            print("There's nothing to do!")
+            print("\nThere's nothing to do!")
             return
 
         for token in self.tokens:
             if not token.is_valid():
-                print("Skipping invalid token...")
+                print("Skipped invalid token...")
                 continue
 
             if token.action == "DELETE":
-                print("deleting file not implemented...")
+                print("Deleting file not implemented...")
                 continue
 
             if not os.path.exists(token.destination):
@@ -283,6 +283,8 @@ class Enforcer():
 
             else:
                 print(f"Action:'{token.action}' not implemented.")
+
+        print("\nDone!")
 
 def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
     '''Scan a directory, return a tuple of scanned files and folders'''
@@ -435,18 +437,18 @@ def load_config(config_path: str) -> Config:
 # -------------------------!! sloppy stuff ends here  !!--------------------------
 
 def main(argv):
-    '''_'''    
-    if len(argv) < 1:
-        print("You need to provide a config! E.g. ./config.json")
-        return
-
-    config_path = argv[0]
+    '''_'''
+    print("Epic File Sorter by B0ney\n")    
     default_config_path = "./configs/B0ney_config.json"
 
     try:
+        config_path = argv[0]
         new_config: Config = load_config(default_config_path)
     except FileNotFoundError:
         print(f"ERROR: Invalid path {config_path}")
+        return
+    except IndexError:
+        print("ERROR: \n    You need to provide a config file! E.g. \"./configs/default.json\"")
         return
 
     test_conf = Enforcer(new_config)
@@ -457,4 +459,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-    input("Press Enter to continue...")
+    input("\nPress Enter to continue...")
