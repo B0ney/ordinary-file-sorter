@@ -350,6 +350,7 @@ def as_regex(list_of_key_words: list[str]) -> str:
 def create_file_rule(
     destination:    str,
     extensions:     list[str]   = None,
+
     keywords:       list[str]   = None,
     whitelist:      list[str]   = None,
     action:         str         = "MOVE",
@@ -439,11 +440,10 @@ def load_config(config_path: str) -> Config:
 def main(argv):
     '''_'''
     print("Epic File Sorter by B0ney\n")    
-    default_config_path = "./configs/B0ney_config.json"
 
     try:
         config_path = argv[0]
-        new_config: Config = load_config(default_config_path)
+        new_config: Config = load_config(config_path)
     except FileNotFoundError:
         print(f"ERROR: Invalid path {config_path}")
         return
