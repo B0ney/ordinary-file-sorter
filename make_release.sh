@@ -1,0 +1,1 @@
+cp ./*.py ./build

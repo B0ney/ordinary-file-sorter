@@ -1,4 +1,5 @@
 /scraps/
+/build/
 /tests/__pycache__/
 /__pycache__/
 /.vscode/
