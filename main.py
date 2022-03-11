@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 ''' Main program'''
 import re
 import os.path
