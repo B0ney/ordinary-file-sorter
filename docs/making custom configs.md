@@ -44,7 +44,7 @@ Here's an example of an **Operation** with a cycle:
 ...
 
 {
-	"scan_sources": [
+  "scan_sources": [
 		"~/Downloads",
 		"~/Pictures",
 		"~/Downloads/Unsorted"
@@ -76,9 +76,9 @@ We will be scanning folders: "**~/Downloads**", "**~/Pictures/**" and "**~/Downl
 
 The rules will be enforced in order.
 
-The first **rule** means that if we find a ".jpg" file in those **three** folders, we move it to "**~/Pictures**".
+The **first rule** means that if we find a ".jpg" file in those **three** folders, we move it to "**~/Pictures**".
 
-The second **rule** means that we move every file we find in those **three** folders, regardless of name or extension to **~/Downloads/Unsorted**.
+The **second rule** means that we move every file we find in those **three** folders, regardless of name or extension to **~/Downloads/Unsorted**.
 
 **What happens**:
 
@@ -98,6 +98,7 @@ Before we enforce any rules, the program will keep a "record" of all the files s
 3) Basically a repeat  of 1)
 
 **The Solution**
+
 The last rule is the cause of this cycle. Create a new seperate operation: 
 ```json
 ...

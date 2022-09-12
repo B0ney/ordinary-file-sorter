@@ -8,7 +8,9 @@
         "Documents/Word",
         "Documents/Pdf",
         "Documents/Ebook",
+        "Documents/RSS",
         "Pictures",
+        "Pictures/Vector",
         "Music",
         "Music/midi",
         "Music/Tracker",
@@ -24,7 +26,12 @@
         "Torrents/Magnets",
         "Misc",
         "Misc/Valve stuff",
-        "Misc/No extension"
+        "Misc/No extension",
+        "Misc/Fonts",
+        "Misc/Anki",
+        "Misc/Bookmarks",
+        "Misc/Excalidraw",
+        "Misc/Lmms Projects"
       ],
       "place_for_unwanted": "~/Downloads/Folders"
     },
@@ -38,6 +45,38 @@
     }
   ],
   "operations": [
+    {
+      "scan_sources": [
+        "~/Pictures",
+        "~/Downloads/Pictures",
+        "~/Downloads"
+      ],
+      "rules": [
+        {
+          "keywords": [
+            "screenshot"
+          ],
+          "extensions": null,
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Pictures/Screenshots"
+        },
+        {
+          "keywords": [
+            "wallpaper",
+            "unsplash",
+            "pexels",
+            "wallhaven",
+            "1920x1080",
+            "4k"
+          ],
+          "extensions": null,
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Pictures/Wallpapers"
+        }
+      ]
+    },
     {
       "scan_sources": [
         "~/Downloads",
@@ -98,6 +137,16 @@
         {
           "keywords": null,
           "extensions": [
+            "rss",
+            "atom"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Documents/RSS"
+        },
+        {
+          "keywords": null,
+          "extensions": [
             "jpeg",
             "jpg",
             "png",
@@ -107,6 +156,15 @@
           "whitelist": null,
           "action": "MOVE",
           "destination": "~/Downloads/Pictures"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "svg"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Pictures/Vector"
         },
         {
           "keywords": null,
@@ -132,7 +190,7 @@
             "it",
             "mod",
             "xm",
-            "ams"
+            "s3m"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -159,7 +217,7 @@
           ],
           "whitelist": null,
           "action": "MOVE",
-          "destination": "~/Downloads/Music"
+          "destination": "~/Downloads/Video"
         },
         {
           "keywords": null,
@@ -167,7 +225,8 @@
             "exe",
             "deb",
             "msi",
-            "appimage"
+            "appimage",
+            "AppImage"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -240,37 +299,59 @@
         },
         {
           "keywords": null,
+          "extensions": [
+            "apkg"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Anki"
+        },
+        {
+          "keywords": [
+            "bookmarks"
+          ],
+          "extensions": [
+            "html",
+            "json"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Bookmarks"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "excalidraw"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Excalidraw"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "ttf"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Fonts"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "mmpz",
+            "mmp"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Lmms Projects"
+        },
+        {
+          "keywords": null,
           "extensions": "",
           "whitelist": null,
           "action": "MOVE",
           "destination": "~/Downloads/Misc/No extension"
-        }
-      ]
-    },
-    {
-      "scan_sources": [
-        "~/Pictures",
-        "~/Downloads/Pictures"
-      ],
-      "rules": [
-        {
-          "keywords": [
-            "screenshot"
-          ],
-          "extensions": null,
-          "whitelist": null,
-          "action": "MOVE",
-          "destination": "~/Pictures/Screenshots"
-        },
-        {
-          "keywords": [
-            "wallpaper",
-            "unsplash"
-          ],
-          "extensions": null,
-          "whitelist": null,
-          "action": "MOVE",
-          "destination": "~/Pictures/Wallpapers"
         }
       ]
     },

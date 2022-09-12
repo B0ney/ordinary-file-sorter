@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python
 
 ''' Main program'''
 import re
@@ -323,7 +323,7 @@ def move(src: str, dest: str):
         print(f"Move failed: {error}")
 
 def copy(src: str, dest: str):
-    '''ssaadsa'''
+    '''Copy files'''
     try:
         shutil.copy(src, dest)
         print(f"Copied: {dest} <-- {src}")
@@ -337,7 +337,7 @@ def filter_by_whitelist(list_of_files: list[File], whitelist: list[str]) -> list
 
 def filter_by_extension(list_of_files: list[File], extensions: list[str]) -> list[File]:
     ''' Return an iterator that yields File objects such that their extensions are in a list '''
-    return filter(lambda file: file.extension in map(lambda ext: ext.strip("."), extensions), list_of_files)
+    return filter(lambda file: file.extension.lower() in map(lambda ext: ext.strip("."), extensions), list_of_files)
 
 def filter_by_key_word(list_of_files: list[File], words: list[str]) -> list[File]:
     ''' Return an iterator of Files if their filenames satisfy a particluar word'''
@@ -439,11 +439,13 @@ def load_config(config_path: str) -> Config:
 
 def main(argv):
     '''_'''
-    print("Epic File Sorter by B0ney\n")    
+    print("Epic File Sorter by B0ney\n")
+    exit_prompt = True    
 
     try:
         config_path = argv[0]
         new_config: Config = load_config(config_path)
+
     except FileNotFoundError:
         print(f"ERROR: Invalid path {config_path}")
         return
@@ -451,12 +453,24 @@ def main(argv):
         print("ERROR: \n    You need to provide a config file! E.g. \"./configs/default.json\"")
         return
 
+    try:
+        param = argv[1]
+        if param == "-Q": # quiet mode, disables exit promt
+            exit_prompt = False
+    except: ## bad practice
+        pass         
+
     test_conf = Enforcer(new_config)
     test_conf.generate_folders()
     test_conf.sort_folders()
     test_conf.sort_files()
     test_conf.enforce()
 
+    if exit_prompt:
+        input("\nPress Enter to continue...")
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-    input("\nPress Enter to continue...")
+
+    

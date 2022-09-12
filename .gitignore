@@ -3,4 +3,6 @@
 /tests/__pycache__/
 /__pycache__/
 /.vscode/
+/.mypy_cache/
 /docs/.obsidian/
+log.txt

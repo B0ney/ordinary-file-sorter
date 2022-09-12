@@ -1,3 +1,4 @@
+#! /usr/bin/python
 # My custom configuration.
 
 from main import Config, Operation, FolderTemplate, create_file_rule
@@ -14,7 +15,9 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
             "Documents/Word",
             "Documents/Pdf",
             "Documents/Ebook",
+            "Documents/RSS",
             "Pictures",
+            "Pictures/Vector",
             "Music",
             "Music/midi",
             "Music/Tracker",
@@ -31,6 +34,11 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
             "Misc",
             "Misc/Valve stuff",
             "Misc/No extension",
+            "Misc/Fonts",
+            "Misc/Anki",
+            "Misc/Bookmarks",
+            "Misc/Excalidraw",
+            "Misc/Lmms Projects",
         ],
         place_for_unwanted = "~/Downloads/Folders"
     ),
@@ -53,29 +61,40 @@ DEFAULT_OPERATION: Operation = Operation(
         create_file_rule("~/Downloads/Documents/Pdf",       ["pdf"]),
         create_file_rule("~/Downloads/Documents/Ebook",     ["epub"]),
         create_file_rule("~/Downloads/Documents",           ["txt"]),
+        create_file_rule("~/Downloads/Documents/RSS",       extensions=["rss", "atom"]),
+
         create_file_rule("~/Downloads/Pictures",            const.IMAGE),
+        create_file_rule("~/Downloads/Pictures/Vector",     ["svg"]),
+
         create_file_rule("~/Downloads/Music",               const.AUDIO),
-        create_file_rule("~/Downloads/Music/Tracker",       ["it","mod","xm","ams"]),
+        create_file_rule("~/Downloads/Music/Tracker",       ["it","mod","xm","s3m"]),
         create_file_rule("~/Downloads/Music/midi",          extensions=["mid"]),
         create_file_rule("~/Downloads/Video",               const.VIDEO),
-        create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage"]),
+        create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage", "AppImage"]),
         create_file_rule("~/Downloads/Programs/Java",       extensions=["jar"]),
         create_file_rule("~/Downloads/Programs/Python",     extensions=["py"]),
         create_file_rule("~/Downloads/Programs/Shell",      extensions=["sh"]),
         create_file_rule("~/Downloads/Torrents",            extensions=["torrent"]),
         create_file_rule("~/Downloads/Torrents/Magnets",    extensions=["magnet"]),
         create_file_rule("~/Downloads/Disk Images",         extensions=["iso", "img"]),
+
         create_file_rule("~/Downloads/Misc/Valve stuff",    extensions=["vtf", "vpk"]),
+        create_file_rule("~/Downloads/Misc/Anki",           extensions=["apkg"]),
+        create_file_rule("~/Downloads/Misc/Bookmarks",      keywords=["bookmarks"], extensions=["html", "json"]),
+        create_file_rule("~/Downloads/Misc/Excalidraw",     extensions=["excalidraw"]),
+        create_file_rule("~/Downloads/Misc/Fonts",          extensions=["ttf"]),
+        create_file_rule("~/Downloads/Misc/Lmms Projects",  extensions=["mmpz", "mmp"]),
+
 
         create_file_rule("~/Downloads/Misc/No extension",   extensions=""),
     ]
 )
 
 SORT_PICTURES: Operation = Operation(
-    ["~/Pictures","~/Downloads/Pictures"],
+    ["~/Pictures","~/Downloads/Pictures","~/Downloads"],
     [
         create_file_rule("~/Pictures/Screenshots",  keywords=["screenshot"]),
-        create_file_rule("~/Pictures/Wallpapers",   keywords=["wallpaper","unsplash"])
+        create_file_rule("~/Pictures/Wallpapers",   keywords=["wallpaper","unsplash", "pexels", "wallhaven", "1920x1080", "4k"])
     ]
 )
 
@@ -91,8 +110,8 @@ SORT_RESIDUAL_FILES: Operation = Operation(
 DEFAULT_CONFIG: Config = Config(
     DEFAULT_FOLDERS,
     [
-        DEFAULT_OPERATION,
         SORT_PICTURES,
+        DEFAULT_OPERATION,
         SORT_RESIDUAL_FILES # Must be placed last or can create a cycle
     ]
 )
