@@ -13,6 +13,7 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
             "Compressed",
             "Documents",
             "Documents/Word",
+            "Documents/txt",
             "Documents/Pdf",
             "Documents/Ebook",
             "Documents/RSS",
@@ -22,15 +23,24 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
             "Music/midi",
             "Music/Tracker",
             "Video",
+
             "Programs",
             "Programs/Java",
             "Programs/Shell",
             "Programs/Python",
-            "Unsorted",
+            "Programs/Jupyter Notebook",
+            "Programs/Android",
+            "Programs/Sql",
+            "Programs/Python Libraries",
+            "Programs/Scratch",
+            "Programs/DLL",
+
             "Folders",
             "Disk Images",
             "Torrents",
+            "Torrents/Linux",
             "Torrents/Magnets",
+
             "Misc",
             "Misc/Valve stuff",
             "Misc/No extension",
@@ -38,7 +48,13 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
             "Misc/Anki",
             "Misc/Bookmarks",
             "Misc/Excalidraw",
-            "Misc/Lmms Projects",
+            "Misc/LMMS Projects",
+            "Misc/LMMS Presets",
+            "Misc/Krita Projects",
+            "Misc/SoundFonts",
+            "Misc/Paint NET Projects",
+
+            "Unsorted",
         ],
         place_for_unwanted = "~/Downloads/Folders"
     ),
@@ -54,37 +70,53 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
 #----------------------------------------------------------------------------------------------
 
 DEFAULT_OPERATION: Operation = Operation(
-    ["~/Downloads", "~/Downloads/Unsorted"],
+    ["~/Downloads", "~/Downloads/Unsorted", "~/Downloads/Documents/"],
     [
         create_file_rule("~/Downloads/Compressed",          const.ARCHIVES),
         create_file_rule("~/Downloads/Documents/Word",      ["docx"]),
         create_file_rule("~/Downloads/Documents/Pdf",       ["pdf"]),
         create_file_rule("~/Downloads/Documents/Ebook",     ["epub"]),
-        create_file_rule("~/Downloads/Documents",           ["txt"]),
+        create_file_rule("~/Downloads/Documents/txt",       ["txt"]),
         create_file_rule("~/Downloads/Documents/RSS",       extensions=["rss", "atom"]),
 
         create_file_rule("~/Downloads/Pictures",            const.IMAGE),
         create_file_rule("~/Downloads/Pictures/Vector",     ["svg"]),
 
         create_file_rule("~/Downloads/Music",               const.AUDIO),
-        create_file_rule("~/Downloads/Music/Tracker",       ["it","mod","xm","s3m"]),
+        create_file_rule("~/Downloads/Music/Tracker",       ["it","mod","xm","s3m","umx", "mptm"]),
         create_file_rule("~/Downloads/Music/midi",          extensions=["mid"]),
+
         create_file_rule("~/Downloads/Video",               const.VIDEO),
-        create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage", "AppImage"]),
+
+        create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage", "AppImage","msu","appinstaller"]),
         create_file_rule("~/Downloads/Programs/Java",       extensions=["jar"]),
         create_file_rule("~/Downloads/Programs/Python",     extensions=["py"]),
         create_file_rule("~/Downloads/Programs/Shell",      extensions=["sh"]),
-        create_file_rule("~/Downloads/Torrents",            extensions=["torrent"]),
+        create_file_rule("~/Downloads/Programs/Jupyter Notebook",   extensions=["ipynb"]),
+        create_file_rule("~/Downloads/Programs/Android",            extensions=["apk"]),
+        create_file_rule("~/Downloads/Programs/Sql",                extensions=["sql"]),
+        create_file_rule("~/Downloads/Programs/Python Libraries",   extensions=["whl"]),
+        create_file_rule("~/Downloads/Programs/DLL",                extensions=["dll"]),
+        create_file_rule("~/Downloads/Programs/Scratch", extensions=["sb", "sb2", "sb3"]),
+
+
+        create_file_rule("~/Downloads/Torrents/Linux",      keywords=["linux"], extensions=["torrent"]),
+        create_file_rule("~/Downloads/Torrents",            extensions=["torrent"]), 
         create_file_rule("~/Downloads/Torrents/Magnets",    extensions=["magnet"]),
+        
         create_file_rule("~/Downloads/Disk Images",         extensions=["iso", "img"]),
 
         create_file_rule("~/Downloads/Misc/Valve stuff",    extensions=["vtf", "vpk"]),
         create_file_rule("~/Downloads/Misc/Anki",           extensions=["apkg"]),
-        create_file_rule("~/Downloads/Misc/Bookmarks",      keywords=["bookmarks"], extensions=["html", "json"]),
-        create_file_rule("~/Downloads/Misc/Excalidraw",     extensions=["excalidraw"]),
-        create_file_rule("~/Downloads/Misc/Fonts",          extensions=["ttf"]),
-        create_file_rule("~/Downloads/Misc/Lmms Projects",  extensions=["mmpz", "mmp"]),
+        create_file_rule("~/Downloads/Misc/Bookmarks",      keywords=["bookmark"], extensions=["html", "json"]),
+        create_file_rule("~/Downloads/Misc/Excalidraw",     extensions=["excalidraw", "drawio"]),
+        create_file_rule("~/Downloads/Misc/Fonts",          extensions=["ttf","woff2","woff"]),
+        create_file_rule("~/Downloads/Misc/LMMS Projects",  extensions=["mmpz", "mmp"]),
+        create_file_rule("~/Downloads/Misc/LMMS Presets",   extensions=["xpf", "xpt", "xptz"]),
+        create_file_rule("~/Downloads/Misc/Krita Projects", extensions=["kra"]),
+        create_file_rule("~/Downloads/Misc/Paint NET Projects", extensions=["pdn"]),
 
+        create_file_rule("~/Downloads/Misc/SoundFonts", extensions=["sf2","sf3", "sfz"]),
 
         create_file_rule("~/Downloads/Misc/No extension",   extensions=""),
     ]
@@ -112,6 +144,7 @@ DEFAULT_CONFIG: Config = Config(
     [
         SORT_PICTURES,
         DEFAULT_OPERATION,
+        
         SORT_RESIDUAL_FILES # Must be placed last or can create a cycle
     ]
 )
