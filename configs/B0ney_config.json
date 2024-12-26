@@ -6,6 +6,7 @@
         "Compressed",
         "Documents",
         "Documents/Word",
+        "Documents/txt",
         "Documents/Pdf",
         "Documents/Ebook",
         "Documents/RSS",
@@ -19,10 +20,16 @@
         "Programs/Java",
         "Programs/Shell",
         "Programs/Python",
-        "Unsorted",
+        "Programs/Jupyter Notebook",
+        "Programs/Android",
+        "Programs/Sql",
+        "Programs/Python Libraries",
+        "Programs/Scratch",
+        "Programs/DLL",
         "Folders",
         "Disk Images",
         "Torrents",
+        "Torrents/Linux",
         "Torrents/Magnets",
         "Misc",
         "Misc/Valve stuff",
@@ -31,7 +38,12 @@
         "Misc/Anki",
         "Misc/Bookmarks",
         "Misc/Excalidraw",
-        "Misc/Lmms Projects"
+        "Misc/LMMS Projects",
+        "Misc/LMMS Presets",
+        "Misc/Krita Projects",
+        "Misc/SoundFonts",
+        "Misc/Paint NET Projects",
+        "Unsorted"
       ],
       "place_for_unwanted": "~/Downloads/Folders"
     },
@@ -80,7 +92,8 @@
     {
       "scan_sources": [
         "~/Downloads",
-        "~/Downloads/Unsorted"
+        "~/Downloads/Unsorted",
+        "~/Downloads/Documents/"
       ],
       "rules": [
         {
@@ -92,7 +105,8 @@
             "bz2",
             "rar",
             "xz",
-            "gz"
+            "gz",
+            "zst"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -132,7 +146,7 @@
           ],
           "whitelist": null,
           "action": "MOVE",
-          "destination": "~/Downloads/Documents"
+          "destination": "~/Downloads/Documents/txt"
         },
         {
           "keywords": null,
@@ -178,7 +192,8 @@
             "alac",
             "dsd",
             "mqa",
-            "m4a"
+            "m4a",
+            "opus"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -190,7 +205,9 @@
             "it",
             "mod",
             "xm",
-            "s3m"
+            "s3m",
+            "umx",
+            "mptm"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -213,7 +230,8 @@
             "flv",
             "mov",
             "avi",
-            "webm"
+            "webm",
+            "3gp"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -226,7 +244,10 @@
             "deb",
             "msi",
             "appimage",
-            "AppImage"
+            "AppImage",
+            "msu",
+            "appinstaller",
+            "flatpak"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -258,6 +279,73 @@
           "whitelist": null,
           "action": "MOVE",
           "destination": "~/Downloads/Programs/Shell"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "ipynb"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Jupyter Notebook"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "apk"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Android"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "sql"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Sql"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "whl"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Python Libraries"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "dll"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/DLL"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "sb",
+            "sb2",
+            "sb3"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Programs/Scratch"
+        },
+        {
+          "keywords": [
+            "linux"
+          ],
+          "extensions": [
+            "torrent"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Torrents/Linux"
         },
         {
           "keywords": null,
@@ -308,7 +396,7 @@
         },
         {
           "keywords": [
-            "bookmarks"
+            "bookmark"
           ],
           "extensions": [
             "html",
@@ -321,7 +409,8 @@
         {
           "keywords": null,
           "extensions": [
-            "excalidraw"
+            "excalidraw",
+            "drawio"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -330,7 +419,9 @@
         {
           "keywords": null,
           "extensions": [
-            "ttf"
+            "ttf",
+            "woff2",
+            "woff"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -344,7 +435,47 @@
           ],
           "whitelist": null,
           "action": "MOVE",
-          "destination": "~/Downloads/Misc/Lmms Projects"
+          "destination": "~/Downloads/Misc/LMMS Projects"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "xpf",
+            "xpt",
+            "xptz"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/LMMS Presets"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "kra"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Krita Projects"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "pdn"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Paint NET Projects"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "sf2",
+            "sf3",
+            "sfz"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/SoundFonts"
         },
         {
           "keywords": null,

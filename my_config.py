@@ -88,7 +88,7 @@ DEFAULT_OPERATION: Operation = Operation(
 
         create_file_rule("~/Downloads/Video",               const.VIDEO),
 
-        create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage", "AppImage","msu","appinstaller"]),
+        create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage", "AppImage","msu", "appinstaller", "flatpak"]),
         create_file_rule("~/Downloads/Programs/Java",       extensions=["jar"]),
         create_file_rule("~/Downloads/Programs/Python",     extensions=["py"]),
         create_file_rule("~/Downloads/Programs/Shell",      extensions=["sh"]),
