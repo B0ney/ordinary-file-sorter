@@ -53,7 +53,7 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
             "Misc/Krita Projects",
             "Misc/SoundFonts",
             "Misc/Paint NET Projects",
-
+            "Misc/Flash",
             "Unsorted",
         ],
         place_for_unwanted = "~/Downloads/Folders"
@@ -89,12 +89,9 @@ DEFAULT_OPERATION: Operation = Operation(
         create_file_rule("~/Downloads/Video",               const.VIDEO),
 
         create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage", "AppImage","msu", "appinstaller", "flatpak"]),
-        create_file_rule("~/Downloads/Programs/Java",       extensions=["jar"]),
         create_file_rule("~/Downloads/Programs/Python",     extensions=["py"]),
         create_file_rule("~/Downloads/Programs/Shell",      extensions=["sh"]),
         create_file_rule("~/Downloads/Programs/Jupyter Notebook",   extensions=["ipynb"]),
-        create_file_rule("~/Downloads/Programs/Android",            extensions=["apk"]),
-        create_file_rule("~/Downloads/Programs/Sql",                extensions=["sql"]),
         create_file_rule("~/Downloads/Programs/Python Libraries",   extensions=["whl"]),
         create_file_rule("~/Downloads/Programs/DLL",                extensions=["dll"]),
         create_file_rule("~/Downloads/Programs/Scratch", extensions=["sb", "sb2", "sb3"]),
@@ -115,10 +112,9 @@ DEFAULT_OPERATION: Operation = Operation(
         create_file_rule("~/Downloads/Misc/LMMS Presets",   extensions=["xpf", "xpt", "xptz"]),
         create_file_rule("~/Downloads/Misc/Krita Projects", extensions=["kra"]),
         create_file_rule("~/Downloads/Misc/Paint NET Projects", extensions=["pdn"]),
-
         create_file_rule("~/Downloads/Misc/SoundFonts", extensions=["sf2","sf3", "sfz"]),
-
-        create_file_rule("~/Downloads/Misc/No extension",   extensions=""),
+        create_file_rule("~/Downloads/Misc/Flash", extensions=["swf"]),
+        # create_file_rule("~/Downloads/Misc/ROMS", extensions=["nds", ""]),
     ]
 )
 

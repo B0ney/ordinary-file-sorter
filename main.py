@@ -6,7 +6,47 @@ import os.path
 import shutil
 import json
 import sys
-from typing import Tuple
+from typing import Iterable, List, Optional, Tuple
+from enum import Enum
+
+class Action(Enum):
+    DELETE = "DELETE"
+    MOVE = "MOVE"
+    COPY = "COPY"
+    SHRED = "SHRED"
+
+    @staticmethod
+    def move(src: str, dest: str):
+        try:
+            shutil.move(src, dest)
+            print(f"Moved: {dest} <-- {src}")
+
+        except Exception as error:
+            print(f"Move failed: {error}")
+
+    @staticmethod
+    def copy(src: str, dest: str):
+        try:
+            shutil.copy(src, dest)
+            print(f"Copied: {dest} <-- {src}")
+
+        except Exception as error:
+            print(f"Copy failed: {error}")
+
+class FileKind(Enum):
+    ANY = "ANY"
+    BINARY = "BINARY"
+    PLAINTEXT = "PlAINTEXT"
+
+
+# def check_kind(path: str) -> Optional[FileKind]:
+#     try:
+#         with open(path, "rb") as file:
+#             file.re
+#             pass
+
+#     except:
+#         return None
 
 class Folder():
     ''' Stores the folder name and its full path'''
@@ -17,7 +57,7 @@ class Folder():
 class File():
     ''' Stores the file name, file extension and its full path.\n
         "name" is purely the file name.\n
-        "extensions" can include a delimiter "." but is discoraged\n
+        "extensions" can include a delimiter "." but is discouraged\n
         "path" defines the full path of a file.
     '''
     def __init__(self, name: str, extension: str, path: str):
@@ -35,55 +75,67 @@ class FileRule():
     '''
     def __init__(
         self,
-        keywords:       list[str],
-        extensions:     list[str],
+        keywords:       List[str],
+        extensions:     List[str],
         action:         str,
         destination:    str,
-        whitelist:      list[str] = None,
-    ) -> None:
+        whitelist:      List[str] = None,
+        kind:           FileKind = FileKind.ANY,
+    ):
+        assert not (extensions is None and keywords is None)
+        
         self.keywords       = keywords
         self.extensions     = extensions
         self.whitelist      = whitelist
         self.action         = action
         self.destination    = destination
+        self.kind           = kind
+
+def create_file_rule(
+    destination:    str,
+    extensions:     List[str]   = None,
+    keywords:       List[str]   = None,
+    whitelist:      List[str]   = None,
+    action:         str         = Action.MOVE,
+    kind:           FileKind    = FileKind.ANY,
+) -> FileRule:
+    ''' Creates a FileRule object given these parameters'''
+    return FileRule(
+        keywords    = keywords,
+        extensions  = extensions,
+        destination = destination,
+        whitelist   = whitelist,
+        action      = action,
+        kind        = kind,
+    )
 
 class FolderTemplate():
     ''' Given a root folder and a list of folder names,
         we can generate folders with this template.
     '''
-    def __init__(
-        self,
+    def __init__(self,
         root_folder:        str,
-        folders:            list[str],
-        place_for_unwanted: str = None
-    ) -> None:
+        folders:            List[str],
+        place_for_unwanted: Optional[str] = None
+    ):
         self.root_folder          = root_folder
         self.folders              = folders
         self.place_for_unwanted   = place_for_unwanted
 
     @property
-    def as_iter(self) -> list[str]: # too much rust influence
+    def as_iter(self) -> Iterable[str]: # too much rust influence
         '''Produces a list of folders with their raw path'''
         return map(lambda folder: os.path.join(self.root_folder, folder), self.folders)
 
 class Operation():
     ''' Stores a list of sources and a list of rules'''
-    def __init__(
-        self,
-        scan_sources:   list[str],
-        rules:          list[FileRule]
-    ) -> None:
+    def __init__(self, scan_sources: List[str], rules: List[FileRule]):
         self.scan_sources   = scan_sources
         self.rules          = rules
 
 class  Token():
     ''' Stores the Source of a file/folder and the destination'''
-    def __init__(
-        self,
-        source:         str,
-        destination:    str,
-        action:         str,
-    ) -> None:
+    def __init__(self, source: str, destination: str, action: str):
         self.source         = source
         self.destination    = destination
         self.action         = action
@@ -140,9 +192,9 @@ class Config():
     '''
     def __init__(
         self,
-        folder_templates:   list[FolderTemplate],
-        operations:         list[Operation]
-    ) -> None:
+        folder_templates:   List[FolderTemplate],
+        operations:         List[Operation]
+    ):
         self.folder_templates   = folder_templates
         self.operations         = operations
 
@@ -155,12 +207,12 @@ class Config():
 
 class Enforcer():
     '''Responsible for enforcing rules and configurations set up by the Config class.'''
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config):
         self.config:            Config          = config
-        self.tokens:            list[Token]     = []
-        self.files:             list[File]      = []
-        self.folders:           list[Folder]    = []
-        self.scanned_sources:   list[File]      = []
+        self.tokens:            List[Token]     = []
+        self.files:             List[File]      = []
+        self.folders:           List[Folder]    = []
+        self.scanned_sources:   List[File]      = []
 
     def generate_folders(self):
         '''Generates folders when provided a list of folder templates.'''
@@ -183,25 +235,24 @@ class Enforcer():
         ''' Move folders not specified by the folder template to a specified folder.\n
             Folder templates that do not have a dedicated place for these folders are ignored. 
         '''
-        move_tokens: list[Token] = []
+        move_tokens: List[Token] = []
 
         for template in self.config.folder_templates:
 
             if template.place_for_unwanted is None:
                 continue
 
-            (_, scanned_folders) = scandir(template.root_folder)
+            (_, scanned_folders) = scan_dir(template.root_folder)
 
             for folder in scanned_folders:
                 if folder.name not in template.folders:
                     move_tokens.append(Token(
-                        folder.path, template.place_for_unwanted, "MOVE"))
+                        folder.path, template.place_for_unwanted, Action.MOVE))
 
         self.tokens += move_tokens
 
     def sort_files(self):
-        ''' Move files based on their extensions,
-            key words and whitelist status to a specified location.
+        ''' Move files based on their extensions, keywords and whitelist status to a specified location.
         '''
         for operation in self.config.operations:
             for source in operation.scan_sources:
@@ -211,9 +262,9 @@ class Enforcer():
                 filtered_files = self.filter_files(rule)
                 self.tokens += self.generate_file_move_tokens(rule, filtered_files)
 
-            self.files              = []
-            self.folders            = []
-            self.scanned_sources    = []
+            self.files.clear()
+            self.folders.clear()
+            self.scanned_sources.clear()
 
     def scan_files(self, path: str):
         '''A user can choose to scan multiple folders before enforcing a rule(s)'''
@@ -221,41 +272,33 @@ class Enforcer():
             print(f"WARN: Scanning operation ignored: Source '{path}' already scanned")
 
         else:
-            (scanned_files, _) = scandir(path)
+            (scanned_files, _) = scan_dir(path)
             self.files += scanned_files
             self.scanned_sources.append(path)
 
             print(f"INFO: Scanned {path}. {len(scanned_files)} files scanned")
 
-    def filter_files(self, rule: FileRule) -> list[File]:
+    def filter_files(self, rule: FileRule) -> List[File]:
         ''' Filtering order: whitelist -> file extension -> key words '''
-        filtered_files: list[File] = self.files
+        filtered_files: List[File] = self.files
 
         if rule.whitelist is not None:
-            filtered_files = filter_by_whitelist(filtered_files, rule.whitelist)
+            filtered_files = Filter.by_whitelist(filtered_files, rule.whitelist)
 
         if rule.extensions is not None:
-            filtered_files = filter_by_extension(filtered_files, rule.extensions)
+            filtered_files = Filter.by_extension(filtered_files, rule.extensions)
 
         if rule.keywords is not None:
-            filtered_files = filter_by_key_word(filtered_files, rule.keywords)
+            filtered_files = Filter.by_key_word(filtered_files, rule.keywords)
 
         return filtered_files
 
-    def generate_file_move_tokens(
-        self,
-        rule: FileRule,
-        filtered_files: list[File]
-    ) -> list[Token]:
+    def generate_file_move_tokens(self, rule: FileRule, filtered_files: List[File]) -> List[Token]:
         ''' Generates a list of MoveTokens given a file rule and a list of File objects'''
-        template_list: list[Token] = []
 
-        for file in filtered_files:
-            template_list.append(Token(file.path, rule.destination, rule.action))
+        return [Token(file.path, rule.destination, rule.action) for file in filtered_files]
 
-        return template_list
-
-    def enforce(self) -> None:
+    def enforce(self):
         '''After we generate some tokens, we use them to sort files!'''
         if self.tokens == []:
             print("\nThere's nothing to do!")
@@ -263,10 +306,11 @@ class Enforcer():
 
         for token in self.tokens:
             if not token.is_valid():
-                print("Skipped invalid token...")
+                # print("Skipped invalid token...")
                 continue
 
-            if token.action == "DELETE":
+            if token.action == Action.DELETE:
+                # TODO: move to recycle bin
                 print("Deleting file not implemented...")
                 continue
 
@@ -275,18 +319,18 @@ class Enforcer():
 
             src = check_and_rename_dupes(token.source, token.destination)
 
-            if token.action == "MOVE":
-                move(src, token.destination)
+            if token.action == Action.MOVE:
+                Action.move(src, token.destination)
 
-            elif token.action == "COPY":
-                copy(src, token.destination)
+            elif token.action == Action.COPY:
+                Action.copy(src, token.destination)
 
             else:
                 print(f"Action:'{token.action}' not implemented.")
 
         print("\nDone!")
 
-def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
+def scan_dir(folder: str) -> Tuple[List[File], List[Folder]]:
     '''Scan a directory, return a tuple of scanned files and folders'''
     folder = os.path.expanduser(folder)
 
@@ -310,61 +354,32 @@ def scandir(folder: str) -> Tuple[list[File], list[Folder]]:
 
     return (scanned_files, scanned_folders)
 
-def move(src: str, dest: str):
-    ''' Move files and folders according to the list of MoveTokens.\n
-        Will automatically rename duplicates.\n
-        Will automatically create a folder if it doesn't exist.
-    '''
-    try:
-        shutil.move(src, dest)
-        print(f"Moved: {dest} <-- {src}")
 
-    except Exception as error:
-        print(f"Move failed: {error}")
+class Filter:
+    @staticmethod
+    def by_whitelist(files: List[File], whitelist: List[str]) -> List[File]:
+        ''' Return a list of Files that is not whitelisted '''
 
-def copy(src: str, dest: str):
-    '''Copy files'''
-    try:
-        shutil.copy(src, dest)
-        print(f"Copied: {dest} <-- {src}")
+        return [file for file in files if file.name not in whitelist]
 
-    except Exception as error:
-        print(f"Copy failed: {error}")
 
-def filter_by_whitelist(list_of_files: list[File], whitelist: list[str]) -> list[File]:
-    ''' Return an iterator of non whitelisted Files '''
-    return filter(lambda file: file.name not in whitelist, list_of_files)
+    @staticmethod
+    def by_extension(files: List[File], extensions: List[str]) -> List[File]:
+        ''' Return a list Files with extensions that were specified '''
 
-def filter_by_extension(list_of_files: list[File], extensions: list[str]) -> list[File]:
-    ''' Return an iterator that yields File objects such that their extensions are in a list '''
-    return filter(lambda file: file.extension.lower() in map(lambda ext: ext.strip("."), extensions), list_of_files)
+        extensions = [ext.strip(".") for ext in extensions]
+        return [file for file in files if file.extension.lower() in extensions]
 
-def filter_by_key_word(list_of_files: list[File], words: list[str]) -> list[File]:
-    ''' Return an iterator of Files if their filenames satisfy a particluar word'''
-    return filter(lambda file: re.search(as_regex(words), file.name.lower()), list_of_files)
 
-def as_regex(list_of_key_words: list[str]) -> str:
-    # TODO sanitise words in list to get rid of special characters
-    return f"{'|'.join(list_of_key_words)}"
+    @staticmethod
+    def by_key_word(list_of_files: List[File], words: List[str]) -> List[File]:
+        ''' Return a list of Files if their filenames contain a particular word'''
 
-def create_file_rule(
-    destination:    str,
-    extensions:     list[str]   = None,
+        # TODO sanitise words in list to get rid of special characters
+        regex = f"{'|'.join(words)}"
 
-    keywords:       list[str]   = None,
-    whitelist:      list[str]   = None,
-    action:         str         = "MOVE",
-) -> FileRule:
-    ''' Creates a FileRule object given these parameters'''
-    assert not (extensions is None and keywords is None)
-
-    return FileRule(
-        keywords    = keywords,
-        extensions  = extensions,
-        destination = destination,
-        whitelist   = whitelist,
-        action      = action
-    )
+        matches = lambda string: re.search(regex, string)
+        return [file for file in list_of_files if matches(file.name.lower())]
 
 # -------------------------!! Sloppy stuff, but works !!--------------------------
 
@@ -399,8 +414,8 @@ def load_config(config_path: str) -> Config:
     with open(config_path, "r", encoding="UTF-8") as file:
         a = json.load(file)
 
-    templates: list[FolderTemplate] = []
-    operations: list[Operation]     = []
+    templates: List[FolderTemplate] = []
+    operations: List[Operation]     = []
 
     for b in a["folder_templates"]:
         templates.append(
@@ -411,7 +426,7 @@ def load_config(config_path: str) -> Config:
             )
         )
     for c in a["operations"]:
-        file_rules: list(FileRule) = []
+        file_rules: List[FileRule] = []
 
         for rule in c["rules"]:
             file_rules.append(
@@ -431,10 +446,8 @@ def load_config(config_path: str) -> Config:
             )
         )
 
-    return Config(
-        folder_templates    = templates,
-        operations          = operations
-        )
+    return Config(templates, operations)
+
 # -------------------------!! sloppy stuff ends here  !!--------------------------
 
 def main(argv):
@@ -455,7 +468,7 @@ def main(argv):
 
     try:
         param = argv[1]
-        if param == "-Q": # quiet mode, disables exit promt
+        if param == "-Q": # quiet mode, disables exit prompt
             exit_prompt = False
     except: ## bad practice
         pass         

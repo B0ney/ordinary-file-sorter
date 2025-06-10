@@ -256,15 +256,6 @@
         {
           "keywords": null,
           "extensions": [
-            "jar"
-          ],
-          "whitelist": null,
-          "action": "MOVE",
-          "destination": "~/Downloads/Programs/Java"
-        },
-        {
-          "keywords": null,
-          "extensions": [
             "py"
           ],
           "whitelist": null,
@@ -288,24 +279,6 @@
           "whitelist": null,
           "action": "MOVE",
           "destination": "~/Downloads/Programs/Jupyter Notebook"
-        },
-        {
-          "keywords": null,
-          "extensions": [
-            "apk"
-          ],
-          "whitelist": null,
-          "action": "MOVE",
-          "destination": "~/Downloads/Programs/Android"
-        },
-        {
-          "keywords": null,
-          "extensions": [
-            "sql"
-          ],
-          "whitelist": null,
-          "action": "MOVE",
-          "destination": "~/Downloads/Programs/Sql"
         },
         {
           "keywords": null,
@@ -465,6 +438,15 @@
           "whitelist": null,
           "action": "MOVE",
           "destination": "~/Downloads/Misc/Paint NET Projects"
+        },
+        {
+          "keywords": null,
+          "extensions": [
+            "swf"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Misc/Flash"
         },
         {
           "keywords": null,
