@@ -43,6 +43,7 @@
         "Misc/Krita Projects",
         "Misc/SoundFonts",
         "Misc/Paint NET Projects",
+        "Misc/Flash",
         "Unsorted"
       ],
       "place_for_unwanted": "~/Downloads/Folders"
@@ -92,8 +93,7 @@
     {
       "scan_sources": [
         "~/Downloads",
-        "~/Downloads/Unsorted",
-        "~/Downloads/Documents/"
+        "~/Downloads/Unsorted"
       ],
       "rules": [
         {
@@ -265,7 +265,8 @@
         {
           "keywords": null,
           "extensions": [
-            "sh"
+            "sh",
+            "ps1"
           ],
           "whitelist": null,
           "action": "MOVE",
@@ -442,15 +443,6 @@
         {
           "keywords": null,
           "extensions": [
-            "swf"
-          ],
-          "whitelist": null,
-          "action": "MOVE",
-          "destination": "~/Downloads/Misc/Flash"
-        },
-        {
-          "keywords": null,
-          "extensions": [
             "sf2",
             "sf3",
             "sfz"
@@ -461,10 +453,44 @@
         },
         {
           "keywords": null,
-          "extensions": "",
+          "extensions": [
+            "swf"
+          ],
           "whitelist": null,
           "action": "MOVE",
-          "destination": "~/Downloads/Misc/No extension"
+          "destination": "~/Downloads/Misc/Flash"
+        }
+      ]
+    },
+    {
+      "scan_sources": [
+        "~/Downloads/Torrents"
+      ],
+      "rules": [
+        {
+          "keywords": [
+            "linux",
+            "ubuntu"
+          ],
+          "extensions": [
+            "torrent"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Torrents/Linux"
+        },
+        {
+          "keywords": [
+            "archive",
+            "ubuntu"
+          ],
+          "extensions": [
+            "torrent",
+            "magnet"
+          ],
+          "whitelist": null,
+          "action": "MOVE",
+          "destination": "~/Downloads/Torrents/Archive"
         }
       ]
     },

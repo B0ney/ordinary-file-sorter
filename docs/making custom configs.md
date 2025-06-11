@@ -99,7 +99,7 @@ Before we enforce any rules, the program will keep a "record" of all the files s
 
 **The Solution**
 
-The last rule is the cause of this cycle. Create a new seperate operation: 
+The last rule is the cause of this cycle. Create a new separate operation: 
 ```json
 ...
 {

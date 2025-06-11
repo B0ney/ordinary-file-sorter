@@ -6,7 +6,7 @@ import constants as const
 
 #----------------------------------------------------------------------------------------------
 
-DEFAULT_FOLDERS: list[FolderTemplate] = [
+DEFAULT_FOLDERS = [
     FolderTemplate(
         "~/Downloads",
         [
@@ -69,8 +69,8 @@ DEFAULT_FOLDERS: list[FolderTemplate] = [
 
 #----------------------------------------------------------------------------------------------
 
-DEFAULT_OPERATION: Operation = Operation(
-    ["~/Downloads", "~/Downloads/Unsorted", "~/Downloads/Documents/"],
+SORT_DOWNLOADS = Operation(
+    ["~/Downloads", "~/Downloads/Unsorted"],
     [
         create_file_rule("~/Downloads/Compressed",          const.ARCHIVES),
         create_file_rule("~/Downloads/Documents/Word",      ["docx"]),
@@ -90,16 +90,16 @@ DEFAULT_OPERATION: Operation = Operation(
 
         create_file_rule("~/Downloads/Programs",            extensions=["exe", "deb", "msi", "appimage", "AppImage","msu", "appinstaller", "flatpak"]),
         create_file_rule("~/Downloads/Programs/Python",     extensions=["py"]),
-        create_file_rule("~/Downloads/Programs/Shell",      extensions=["sh"]),
+        create_file_rule("~/Downloads/Programs/Shell",      extensions=["sh", "ps1"]),
         create_file_rule("~/Downloads/Programs/Jupyter Notebook",   extensions=["ipynb"]),
         create_file_rule("~/Downloads/Programs/Python Libraries",   extensions=["whl"]),
         create_file_rule("~/Downloads/Programs/DLL",                extensions=["dll"]),
         create_file_rule("~/Downloads/Programs/Scratch", extensions=["sb", "sb2", "sb3"]),
 
 
-        create_file_rule("~/Downloads/Torrents/Linux",      keywords=["linux"], extensions=["torrent"]),
-        create_file_rule("~/Downloads/Torrents",            extensions=["torrent"]), 
-        create_file_rule("~/Downloads/Torrents/Magnets",    extensions=["magnet"]),
+        create_file_rule("~/Downloads/Torrents/Linux", keywords=["linux"], extensions=["torrent"]),
+        create_file_rule("~/Downloads/Torrents", extensions=["torrent"]),
+        create_file_rule("~/Downloads/Torrents/Magnets", extensions=["magnet"]),
         
         create_file_rule("~/Downloads/Disk Images",         extensions=["iso", "img"]),
 
@@ -114,21 +114,28 @@ DEFAULT_OPERATION: Operation = Operation(
         create_file_rule("~/Downloads/Misc/Paint NET Projects", extensions=["pdn"]),
         create_file_rule("~/Downloads/Misc/SoundFonts", extensions=["sf2","sf3", "sfz"]),
         create_file_rule("~/Downloads/Misc/Flash", extensions=["swf"]),
-        # create_file_rule("~/Downloads/Misc/ROMS", extensions=["nds", ""]),
     ]
 )
 
-SORT_PICTURES: Operation = Operation(
+SORT_PICTURES = Operation(
     ["~/Pictures","~/Downloads/Pictures","~/Downloads"],
     [
-        create_file_rule("~/Pictures/Screenshots",  keywords=["screenshot"]),
-        create_file_rule("~/Pictures/Wallpapers",   keywords=["wallpaper","unsplash", "pexels", "wallhaven", "1920x1080", "4k"])
+        create_file_rule("~/Pictures/Screenshots", keywords=["screenshot"]),
+        create_file_rule("~/Pictures/Wallpapers", keywords=["wallpaper", "unsplash", "pexels", "wallhaven", "1920x1080", "4k"])
+    ]
+)
+
+SORT_TORRENTS = Operation(
+    ["~/Downloads/Torrents"],
+    [
+        create_file_rule("~/Downloads/Torrents/Linux", keywords=["linux", "ubuntu"], extensions=["torrent"]),
+        create_file_rule("~/Downloads/Torrents/Archive", keywords=["archive", "ubuntu"], extensions=["torrent", "magnet"]),
     ]
 )
 
 # We may have some files after a cleanup, move them to the unsorted folder.
 # NOTE: Do not merge with the operation above, this can create a cylce.
-SORT_RESIDUAL_FILES: Operation = Operation(
+SORT_RESIDUAL_FILES = Operation(
     ["~/Downloads"],
     [create_file_rule("~/Downloads/Unsorted/", keywords="")]
 )
@@ -139,8 +146,8 @@ DEFAULT_CONFIG: Config = Config(
     DEFAULT_FOLDERS,
     [
         SORT_PICTURES,
-        DEFAULT_OPERATION,
-        
+        SORT_DOWNLOADS,
+        SORT_TORRENTS,
         SORT_RESIDUAL_FILES # Must be placed last or can create a cycle
     ]
 )

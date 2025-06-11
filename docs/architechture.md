@@ -1,4 +1,4 @@
-# Program architechture
+# Program architecture
 
 There's a lot of code, so how does it all work?
 

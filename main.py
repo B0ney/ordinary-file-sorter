@@ -7,46 +7,11 @@ import shutil
 import json
 import sys
 from typing import Iterable, List, Optional, Tuple
-from enum import Enum
 
-class Action(Enum):
-    DELETE = "DELETE"
-    MOVE = "MOVE"
-    COPY = "COPY"
-    SHRED = "SHRED"
-
-    @staticmethod
-    def move(src: str, dest: str):
-        try:
-            shutil.move(src, dest)
-            print(f"Moved: {dest} <-- {src}")
-
-        except Exception as error:
-            print(f"Move failed: {error}")
-
-    @staticmethod
-    def copy(src: str, dest: str):
-        try:
-            shutil.copy(src, dest)
-            print(f"Copied: {dest} <-- {src}")
-
-        except Exception as error:
-            print(f"Copy failed: {error}")
-
-class FileKind(Enum):
-    ANY = "ANY"
-    BINARY = "BINARY"
-    PLAINTEXT = "PlAINTEXT"
-
-
-# def check_kind(path: str) -> Optional[FileKind]:
-#     try:
-#         with open(path, "rb") as file:
-#             file.re
-#             pass
-
-#     except:
-#         return None
+DELETE = "DELETE"
+MOVE = "MOVE"
+COPY = "COPY"
+SHRED = "SHRED"
 
 class Folder():
     ''' Stores the folder name and its full path'''
@@ -80,7 +45,6 @@ class FileRule():
         action:         str,
         destination:    str,
         whitelist:      List[str] = None,
-        kind:           FileKind = FileKind.ANY,
     ):
         assert not (extensions is None and keywords is None)
         
@@ -89,15 +53,13 @@ class FileRule():
         self.whitelist      = whitelist
         self.action         = action
         self.destination    = destination
-        self.kind           = kind
 
 def create_file_rule(
     destination:    str,
     extensions:     List[str]   = None,
     keywords:       List[str]   = None,
     whitelist:      List[str]   = None,
-    action:         str         = Action.MOVE,
-    kind:           FileKind    = FileKind.ANY,
+    action:         str         = MOVE,
 ) -> FileRule:
     ''' Creates a FileRule object given these parameters'''
     return FileRule(
@@ -106,7 +68,6 @@ def create_file_rule(
         destination = destination,
         whitelist   = whitelist,
         action      = action,
-        kind        = kind,
     )
 
 class FolderTemplate():
@@ -247,7 +208,7 @@ class Enforcer():
             for folder in scanned_folders:
                 if folder.name not in template.folders:
                     move_tokens.append(Token(
-                        folder.path, template.place_for_unwanted, Action.MOVE))
+                        folder.path, template.place_for_unwanted, MOVE))
 
         self.tokens += move_tokens
 
@@ -309,7 +270,7 @@ class Enforcer():
                 # print("Skipped invalid token...")
                 continue
 
-            if token.action == Action.DELETE:
+            if token.action == DELETE:
                 # TODO: move to recycle bin
                 print("Deleting file not implemented...")
                 continue
@@ -319,11 +280,11 @@ class Enforcer():
 
             src = check_and_rename_dupes(token.source, token.destination)
 
-            if token.action == Action.MOVE:
-                Action.move(src, token.destination)
+            if token.action == MOVE:
+                move(src, token.destination)
 
-            elif token.action == Action.COPY:
-                Action.copy(src, token.destination)
+            elif token.action == COPY:
+                copy(src, token.destination)
 
             else:
                 print(f"Action:'{token.action}' not implemented.")
@@ -354,6 +315,21 @@ def scan_dir(folder: str) -> Tuple[List[File], List[Folder]]:
 
     return (scanned_files, scanned_folders)
 
+def move(src: str, dest: str):
+    try:
+        shutil.move(src, dest)
+        print(f"Moved: {dest} <-- {src}")
+
+    except Exception as error:
+        print(f"Move failed: {error}")
+
+def copy(src: str, dest: str):
+    try:
+        shutil.copy(src, dest)
+        print(f"Copied: {dest} <-- {src}")
+
+    except Exception as error:
+        print(f"Copy failed: {error}")
 
 class Filter:
     @staticmethod
